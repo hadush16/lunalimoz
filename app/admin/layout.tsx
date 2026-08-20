@@ -26,8 +26,13 @@ export default function AdminLayout({
   }
 
   const handleSignOut = async () => {
-    await signOut();
-    router.push("/admin/login");
+    document.cookie = "lunalimoz_admin_session=; path=/; max-age=0;";
+    try {
+      await signOut();
+    } catch {
+      // ignore
+    }
+    window.location.href = "/admin/login";
   };
 
   const closeSidebar = () => setIsSidebarOpen(false);
