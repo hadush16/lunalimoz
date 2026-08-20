@@ -2,46 +2,22 @@
 
 import { ConvexReactClient } from "convex/react";
 import { ConvexAuthNextjsProvider } from "@convex-dev/auth/nextjs";
-import { ReactNode, createContext, useContext, useMemo } from "react";
+import { ReactNode, useState } from "react";
 
-const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
+const rawUrl = process.env.NEXT_PUBLIC_CONVEX_URL || "";
+const isValidUrl = rawUrl.startsWith("https://") && rawUrl.includes(".convex.");
+const convexUrl = isValidUrl ? rawUrl : "https://dummy-dev.convex.cloud";
 
-function isValidConvexUrl(url: string | undefined): boolean {
-  if (!url || typeof url !== "string") return false;
-  if (url.includes("dummy")) return false;
-  try {
-    const parsed = new URL(url);
-    return parsed.protocol === "https:" && parsed.hostname.endsWith(".convex.cloud");
-  } catch {
-    return false;
-  }
-}
-
-const ConvexContext = createContext<ConvexReactClient | null>(null);
+const convexClient = new ConvexReactClient(convexUrl, {
+  unsavedChangesWarning: false,
+});
 
 export function ConvexProvider({ children }: { children: ReactNode }) {
-  const client = useMemo(() => {
-    if (isValidConvexUrl(convexUrl)) {
-      try {
-        return new ConvexReactClient(convexUrl!);
-      } catch {
-        return null;
-      }
-    }
-    return null;
-  }, []);
-
-  if (!client) {
-    return <>{children}</>;
-  }
+  const [client] = useState(convexClient);
 
   return (
     <ConvexAuthNextjsProvider client={client}>
       {children}
     </ConvexAuthNextjsProvider>
   );
-}
-
-export function useConvexClient() {
-  return useContext(ConvexContext);
 }
