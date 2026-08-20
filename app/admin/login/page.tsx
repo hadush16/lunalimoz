@@ -1,15 +1,10 @@
 "use client";
 
-import { useAuthActions } from "@convex-dev/auth/react";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Mail, Lock, ShieldCheck, Eye, EyeOff } from "lucide-react";
 
 export default function AdminLoginPage() {
-  const { signIn } = useAuthActions();
-  const router = useRouter();
-  
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -25,34 +20,25 @@ export default function AdminLoginPage() {
     
     const email = rawEmail.trim().toLowerCase();
     const password = rawPassword.trim();
-    
-    const setAdminCookie = () => {
-      document.cookie = "lunalimoz_admin_session=true; path=/; max-age=86400; SameSite=Lax";
-    };
 
     try {
-      await fetch("/api/admin/login", {
+      const res = await fetch("/api/admin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-      
-      try {
-        await signIn("password", { email, password, flow: "signIn" });
-      } catch {
-        try {
-          await signIn("password", { email, password, flow: "signUp" });
-        } catch {
-          // Convex dev fallback
-        }
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        document.cookie = "lunalimoz_admin_session=true; path=/; max-age=604800; SameSite=Lax";
+        window.location.href = data.redirect || "/admin";
+      } else {
+        setError(data.error || "Invalid admin credentials.");
       }
-      
-      setAdminCookie();
-      window.location.href = "/admin";
     } catch (err: any) {
-      console.error("Auth error:", err);
-      setAdminCookie();
-      window.location.href = "/admin";
+      console.error("Login submission error:", err);
+      setError("Network error. Please try again.");
     } finally {
       setIsLoading(false);
     }

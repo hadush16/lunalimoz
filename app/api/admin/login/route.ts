@@ -16,22 +16,24 @@ export async function POST(request: NextRequest) {
       password = ((formData.get("password") as string) || "").trim();
     }
 
-    // Validate admin credentials or grant standalone dev access
-    const response = NextResponse.json({ success: true, redirect: "/admin" });
-    
-    // Set HTTP-Only persistent admin session cookie
-    response.cookies.set("lunalimoz_admin_session", "true", {
-      path: "/",
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-    });
+    if (email === "admin@lunalimoz.com" && password === "password123") {
+      const response = NextResponse.json({ success: true, redirect: "/admin" });
+      response.cookies.set("lunalimoz_admin_session", "true", {
+        httpOnly: true,
+        path: "/",
+        sameSite: "lax",
+        maxAge: 60 * 60 * 24 * 7,
+      });
+      return response;
+    }
 
-    return response;
+    return NextResponse.json(
+      { success: false, error: "Invalid admin email or passcode." },
+      { status: 401 }
+    );
   } catch (err: any) {
     return NextResponse.json(
-      { error: err.message || "Failed to process login" },
+      { success: false, error: err.message || "Failed to process login" },
       { status: 500 }
     );
   }

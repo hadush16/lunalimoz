@@ -1,34 +1,27 @@
-import { convexAuthNextjsMiddleware, createRouteMatcher, isAuthenticatedNextjs, nextjsMiddlewareRedirect } from "@convex-dev/auth/nextjs/server";
+import { NextResponse, type NextRequest } from "next/server";
 
-const isAdminRoute = createRouteMatcher(["/admin(.*)"]);
-const isSignInRoute = createRouteMatcher(["/admin/login"]);
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const adminCookie = request.cookies.get("lunalimoz_admin_session")?.value;
+  const isAuthenticated = adminCookie === "true";
 
-export default convexAuthNextjsMiddleware(async (request) => {
-  const hasAdminCookie = request.cookies.get("lunalimoz_admin_session")?.value === "true";
-  let isAuth = false;
-
-  try {
-    isAuth = await isAuthenticatedNextjs();
-  } catch {
-    isAuth = false;
-  }
-
-  const isAuthenticated = hasAdminCookie || isAuth;
-
-  // If user is trying to access admin pages (but not the login page itself)
-  if (isAdminRoute(request) && !isSignInRoute(request)) {
+  // Protect /admin routes (except /admin/login)
+  if (pathname.startsWith("/admin") && pathname !== "/admin/login") {
     if (!isAuthenticated) {
-      return nextjsMiddlewareRedirect(request, "/admin/login");
+      const loginUrl = new URL("/admin/login", request.url);
+      return NextResponse.redirect(loginUrl);
     }
   }
 
-  // If user is already authenticated and tries to access the login page, redirect to the admin dashboard
-  if (isSignInRoute(request) && isAuthenticated) {
-    return nextjsMiddlewareRedirect(request, "/admin");
+  // Redirect authenticated user away from /admin/login to /admin
+  if (pathname === "/admin/login" && isAuthenticated) {
+    const adminUrl = new URL("/admin", request.url);
+    return NextResponse.redirect(adminUrl);
   }
-});
+
+  return NextResponse.next();
+}
 
 export const config = {
-  // The matcher dictates which routes this proxy function should run on.
-  matcher: ["/((?!.*\\..*|_next).*)", "/", "/(api|trpc)(.*)"],
+  matcher: ["/admin/:path*", "/admin"],
 };
