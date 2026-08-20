@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Users, Car, CalendarDays, Activity, TrendingUp, DollarSign, ArrowUpRight, ArrowDownRight } from "lucide-react";
@@ -30,6 +31,17 @@ export default function AdminDashboardPage() {
     totalRecentBookings: 24
   };
 
+  const [localRides, setLocalRides] = useState<any[]>([]);
+
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem("lunalimoz_bookings") || "[]");
+      setLocalRides(stored);
+    } catch {
+      // ignore
+    }
+  }, []);
+
   const summary = liveSummary || mockSummary;
 
   const {
@@ -40,8 +52,9 @@ export default function AdminDashboardPage() {
     activeFleet,
     recentRides,
     chartData,
-    totalRecentBookings
   } = summary;
+
+  const combinedRecentRides = [...localRides, ...(recentRides || [])];
 
   const stats = [
     { label: "Total Revenue", value: `$${totalRevenue.toLocaleString()}`, sub: `Avg. Ride: $${avgRideValue.toFixed(0)}`, icon: DollarSign },
@@ -143,11 +156,11 @@ export default function AdminDashboardPage() {
           <h2 className="text-gold text-[10px] font-black uppercase tracking-[0.3em]">Recent Activity Log</h2>
         </div>
         
-        {recentRides.length === 0 ? (
+        {combinedRecentRides.length === 0 ? (
            <p className="text-neutral-500 text-xs font-bold uppercase tracking-widest text-center py-12">No recent activity detected</p>
         ) : (
           <div className="space-y-4">
-            {recentRides.map((ride) => (
+            {combinedRecentRides.map((ride) => (
               <div key={ride._id} className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-4 bg-black border border-neutral-800 gap-4 hover:border-neutral-700 transition-colors">
                 <div className="space-y-1 min-w-0">
                    <p className="text-white font-serif text-sm font-black italic uppercase tracking-widest truncate">{ride.customerName}</p>

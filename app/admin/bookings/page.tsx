@@ -5,7 +5,7 @@ import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { CalendarDays, MapPin, Search, Download, MessageSquare, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { GenerateInvoiceButton } from "@/components/admin/GenerateInvoiceButton";
 import Link from "next/link";
 import { formatTime } from "@/lib/utils";
@@ -34,8 +34,20 @@ export default function AdminBookingsPage() {
   const updateStatus = useMutation(api.rides.updateStatus);
   const addNote = useMutation(api.rides.addNote);
 
+  const [localRides, setLocalRides] = useState<any[]>([]);
+
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem("lunalimoz_bookings") || "[]");
+      setLocalRides(stored);
+    } catch {
+      // ignore
+    }
+  }, []);
+
   const hasDateFilter = dateRange.start || dateRange.end;
-  const displayedRides = searchQuery ? searchResults : hasDateFilter ? ridesWithDateFilter : paginatedRides;
+  const rawRides = searchQuery ? searchResults : hasDateFilter ? ridesWithDateFilter : paginatedRides;
+  const displayedRides = [...localRides, ...(rawRides || [])];
 
   const handleStatusChange = async (id: Id<"rides">, status: "pending" | "confirmed" | "cancelled") => {
     try {
