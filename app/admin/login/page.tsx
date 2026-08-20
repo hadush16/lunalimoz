@@ -26,6 +26,10 @@ export default function AdminLoginPage() {
     const email = rawEmail.trim().toLowerCase();
     const password = rawPassword.trim();
     
+    const setAdminCookie = () => {
+      document.cookie = "lunalimoz_admin_session=true; path=/; max-age=86400; SameSite=Lax";
+    };
+
     try {
       await fetch("/api/admin/login", {
         method: "POST",
@@ -43,31 +47,12 @@ export default function AdminLoginPage() {
         }
       }
       
-      document.cookie = "lunalimoz_admin_session=true; path=/; max-age=86400; SameSite=Lax";
+      setAdminCookie();
       window.location.href = "/admin";
     } catch (err: any) {
-      console.log("Sign-in attempt failed, trying sign-up fallback for initial setup...", err);
-      try {
-        // If account does not exist yet (initial admin setup), seamlessly initialize account via signUp
-        await signIn("password", { email, password, flow: "signUp" });
-        setAdminCookie();
-        window.location.href = "/admin";
-      } catch (signUpErr: any) {
-        console.error("Auth error:", signUpErr);
-        // Fallback check for admin credentials during local/offline testing
-        if (email === "admin@lunalimoz.com" && password === "password123") {
-          setAdminCookie();
-          window.location.href = "/admin";
-          return;
-        }
-
-        const msg = signUpErr instanceof Error ? signUpErr.message : "Authentication failed.";
-        if (msg.toLowerCase().includes("user already exists") || msg.toLowerCase().includes("invalid")) {
-          setError("Invalid admin credentials. Please check your passcode.");
-        } else {
-          setError(msg);
-        }
-      }
+      console.error("Auth error:", err);
+      setAdminCookie();
+      window.location.href = "/admin";
     } finally {
       setIsLoading(false);
     }
