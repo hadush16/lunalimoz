@@ -29,7 +29,16 @@ import { Button } from "@/components/ui/button";
 import MapComponent from "@/components/map/map-wrapper";
 import { useRideStore } from "@/lib/store/rideStore";
 import { createCheckoutSession } from "@/lib/convex/api";
-import { calculateRouteBetween } from "@/lib/tomtom/routing";
+import { calculateRouteBetween, type RouteResult } from "@/lib/tomtom/routing";
+
+const DEFAULT_ROUTE: RouteResult = {
+  distance: 18500,
+  duration: 1500,
+  distanceInKm: 18.5,
+  durationInMinutes: 25,
+  coordinates: [],
+  routeGeoJSON: null,
+};
 import { formatDuration, formatDistance } from "@/lib/utils";
 import { formatPrice, calculatePrice, calculateHourlyPrice } from "@/lib/pricing";
 import type { CarType } from "@/lib/pricing";
@@ -166,10 +175,10 @@ export default function BookingClient() {
       if (routeResult) {
         setRoute(routeResult);
       } else {
-        setRoute({ distanceInKm: 18.5, durationInMinutes: 25, coordinates: [] });
+        setRoute(DEFAULT_ROUTE);
       }
     } catch {
-      setRoute({ distanceInKm: 18.5, durationInMinutes: 25, coordinates: [] });
+      setRoute(DEFAULT_ROUTE);
     } finally {
       setLoadingRoute(false);
     }
@@ -289,7 +298,7 @@ export default function BookingClient() {
   const goToNextStep = () => {
     if (bookingStep === "trip" && isTripStepValid()) {
       if (serviceType === "point_to_point" && !route) {
-        setRoute({ distanceInKm: 18.5, durationInMinutes: 25, coordinates: [] });
+        setRoute(DEFAULT_ROUTE);
       }
       setBookingStep("vehicle");
     } else if (bookingStep === "vehicle" && isVehicleStepValid()) {

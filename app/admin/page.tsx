@@ -52,6 +52,7 @@ export default function AdminDashboardPage() {
     activeFleet,
     recentRides,
     chartData,
+    totalRecentBookings = 24,
   } = summary;
 
   const combinedRecentRides = [...localRides, ...(recentRides || [])];
