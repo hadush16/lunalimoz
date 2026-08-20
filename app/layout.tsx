@@ -13,6 +13,7 @@ const dmSans = DM_Sans({ subsets: ["latin"], variable: "--font-sans", weight: ["
 const dmSerif = DM_Serif_Display({ subsets: ["latin"], variable: "--font-serif", weight: "400", display: "swap" });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
   applicationName: "Luna Limo",
   title: {
     default: "Luna Limo | Luxury Chauffeur & Executive Car Service Seattle",

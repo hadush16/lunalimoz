@@ -26,12 +26,12 @@ export default function AdminLayout({
   }
 
   const handleSignOut = async () => {
+    document.cookie = "lunalimoz_admin_session=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT;";
     try {
       await fetch("/api/admin/logout", { method: "POST" });
     } catch {
       // ignore
     }
-    document.cookie = "lunalimoz_admin_session=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT;";
     try {
       await signOut();
     } catch {
