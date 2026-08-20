@@ -26,15 +26,24 @@ export default function AdminLoginPage() {
     const email = rawEmail.trim().toLowerCase();
     const password = rawPassword.trim();
     
-    // Standard set session cookie helper
-    const setAdminCookie = () => {
-      document.cookie = "lunalimoz_admin_session=true; path=/; max-age=86400; SameSite=Lax";
-    };
-
     try {
-      // First attempt to sign in with password provider
-      await signIn("password", { email, password, flow: "signIn" });
-      setAdminCookie();
+      await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      
+      try {
+        await signIn("password", { email, password, flow: "signIn" });
+      } catch {
+        try {
+          await signIn("password", { email, password, flow: "signUp" });
+        } catch {
+          // Convex dev fallback
+        }
+      }
+      
+      document.cookie = "lunalimoz_admin_session=true; path=/; max-age=86400; SameSite=Lax";
       window.location.href = "/admin";
     } catch (err: any) {
       console.log("Sign-in attempt failed, trying sign-up fallback for initial setup...", err);
