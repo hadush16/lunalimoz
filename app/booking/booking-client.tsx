@@ -509,9 +509,9 @@ function BookingClientUI({ dbCarTypes }: { dbCarTypes: any }) {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans overflow-x-hidden w-full pb-28 lg:pb-0">
+    <div className="min-h-screen bg-white dark:bg-black text-slate-900 dark:text-white font-sans overflow-x-hidden w-full pb-28 lg:pb-0 transition-colors">
 
-      <div className="bg-[#111111] py-4 border-b border-neutral-800">
+      <div className="bg-slate-100 dark:bg-[#111111] py-4 border-b border-slate-200 dark:border-neutral-800 transition-colors">
         <div className="max-w-7xl mx-auto px-4 md:px-6">
           <div className="flex items-center justify-between md:justify-center gap-2 md:gap-0">
             <Step
@@ -520,14 +520,14 @@ function BookingClientUI({ dbCarTypes }: { dbCarTypes: any }) {
               active={bookingStep === "trip"}
               complete={bookingStep === "vehicle" || bookingStep === "review"}
             />
-            <div className="flex-1 h-px bg-white/5 md:mx-4" />
+            <div className="flex-1 h-px bg-slate-300 dark:bg-white/5 md:mx-4" />
             <Step
               num="2"
               title="Vehicle"
               active={bookingStep === "vehicle"}
               complete={bookingStep === "review"}
             />
-            <div className="flex-1 h-px bg-white/5 md:mx-4" />
+            <div className="flex-1 h-px bg-slate-300 dark:bg-white/5 md:mx-4" />
             <Step
               num="3"
               title="Review"
@@ -545,12 +545,12 @@ function BookingClientUI({ dbCarTypes }: { dbCarTypes: any }) {
               {bookingStep !== "trip" && (
                 <button
                   onClick={goToPreviousStep}
-                  className="w-10 h-10 flex items-center justify-center border border-neutral-700 hover:border-gold transition-colors"
+                  className="w-10 h-10 flex items-center justify-center border border-slate-300 dark:border-neutral-700 hover:border-gold transition-colors"
                 >
-                  <ArrowLeft className="h-4 w-4 text-neutral-400" />
+                  <ArrowLeft className="h-4 w-4 text-slate-600 dark:text-neutral-400" />
                 </button>
               )}
-              <h2 className="text-2xl sm:text-3xl font-serif font-black italic uppercase text-white border-b-2 border-gold inline-block pb-1">
+              <h2 className="text-2xl sm:text-3xl font-serif font-black italic uppercase text-slate-900 dark:text-white border-b-2 border-gold inline-block pb-1">
                 {stepTitles[bookingStep]}
               </h2>
             </div>
@@ -1153,11 +1153,11 @@ function BookingClientUI({ dbCarTypes }: { dbCarTypes: any }) {
 
 function Step({ num, title, active, complete }: { num: string; title: string; active: boolean; complete: boolean }) {
   return (
-    <div className={`flex items-center gap-2 md:gap-3 transition-all ${active ? "opacity-100" : "opacity-40"}`}>
-      <div className={`w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center font-black italic text-[10px] md:text-sm border-2 ${active || complete ? "bg-gold border-gold text-white" : "border-white/20 text-white"}`}>
+    <div className={`flex items-center gap-2 md:gap-3 transition-all ${active ? "opacity-100" : "opacity-50 dark:opacity-40"}`}>
+      <div className={`w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center font-black italic text-[10px] md:text-sm border-2 ${active || complete ? "bg-gold border-gold text-white" : "border-slate-300 dark:border-white/20 text-slate-700 dark:text-white"}`}>
         {complete ? <CheckCircle className="h-3 w-3 md:h-4 md:h-4" /> : num}
       </div>
-      <span className={`text-[9px] md:text-[10px] font-black uppercase tracking-widest hidden sm:block ${active || complete ? "text-white" : "text-white/40"}`}>
+      <span className={`text-[9px] md:text-[10px] font-black uppercase tracking-widest hidden sm:block ${active || complete ? "text-slate-900 dark:text-white" : "text-slate-500 dark:text-white/40"}`}>
         {title}
       </span>
     </div>

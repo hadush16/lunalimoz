@@ -142,6 +142,8 @@ import { WhatsAppSupport } from "@/components/global/whatsapp-support";
 import { PushAlertManager } from "@/components/global/push-alert-manager";
 
 
+import { ThemeProvider } from "@/components/theme-provider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -149,23 +151,25 @@ export default function RootLayout({
 }>) {
   return (
     <ConvexAuthNextjsServerProvider>
-      <html lang="en" className={`${dmSans.variable} ${dmSerif.variable} h-full antialiased dark`}>
+      <html lang="en" suppressHydrationWarning className={`${dmSans.variable} ${dmSerif.variable} h-full antialiased`}>
         <head>
           <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
           />
         </head>
-        <body className="h-full min-h-screen bg-background text-foreground font-sans flex flex-col">
-          <ConvexProvider>
-            <Header />
-            <div className="flex-1">
-              {children}
-            </div>
-            <Footer />
-            <WhatsAppSupport />
-            <PushAlertManager />
-          </ConvexProvider>
+        <body className="h-full min-h-screen bg-white dark:bg-black text-slate-900 dark:text-white font-sans flex flex-col transition-colors duration-300">
+          <ThemeProvider>
+            <ConvexProvider>
+              <Header />
+              <div className="flex-1">
+                {children}
+              </div>
+              <Footer />
+              <WhatsAppSupport />
+              <PushAlertManager />
+            </ConvexProvider>
+          </ThemeProvider>
           <Suspense fallback={null}>
             <Analytics />
             <SpeedInsights />

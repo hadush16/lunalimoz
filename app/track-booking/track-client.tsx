@@ -146,25 +146,25 @@ export default function TrackClient() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans py-12 px-4 sm:px-6">
+    <div className="min-h-screen bg-white dark:bg-black text-slate-900 dark:text-white font-sans py-12 px-4 sm:px-6 transition-colors">
       <main className="max-w-4xl mx-auto space-y-10">
         
         {/* Header & Lookup Bar */}
         <section className="text-center space-y-6">
           <h3 className="text-gold text-[10px] font-black uppercase tracking-[0.4em]">Luna Concierge Portal</h3>
-          <h1 className="font-serif text-3xl sm:text-5xl font-black italic uppercase text-white">
+          <h1 className="font-serif text-3xl sm:text-5xl font-black italic uppercase text-slate-900 dark:text-white">
             Reservation <span className="text-gold">Status</span>
           </h1>
           
           <form onSubmit={handleSearchSubmit} className="max-w-md mx-auto flex gap-2 pt-2">
             <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-500" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-neutral-500" />
               <input
                 type="text"
                 placeholder="Enter Booking Reference (e.g. LUNA-84920)"
                 value={bookingIdInput}
                 onChange={(e) => setBookingIdInput(e.target.value)}
-                className="w-full bg-neutral-900 border border-neutral-800 pl-11 pr-4 py-4 text-xs font-bold text-white outline-none focus:border-gold transition-colors uppercase placeholder:normal-case placeholder:text-neutral-600"
+                className="w-full bg-slate-100 dark:bg-neutral-900 border border-slate-300 dark:border-neutral-800 pl-11 pr-4 py-4 text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-gold transition-colors uppercase placeholder:normal-case placeholder:text-slate-400 dark:placeholder:text-neutral-600"
               />
             </div>
             <Button type="submit" disabled={isLoading} className="bg-gold hover:bg-gold-dark text-white rounded-none px-6 py-4 text-[10px] font-black uppercase tracking-widest border-b-4 border-gold-dark">
@@ -173,7 +173,7 @@ export default function TrackClient() {
           </form>
 
           {error && (
-            <div className="bg-red-950/40 border border-red-900 text-red-400 text-xs font-bold p-4 max-w-md mx-auto text-center">
+            <div className="bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-red-600 dark:text-red-400 text-xs font-bold p-4 max-w-md mx-auto text-center">
               {error}
             </div>
           )}
@@ -181,7 +181,7 @@ export default function TrackClient() {
 
         {/* Detailed Booking Display */}
         {booking && (
-          <Card className="bg-neutral-900 border border-neutral-800 p-6 sm:p-10 rounded-none shadow-2xl space-y-8 animate-fade-in">
+          <Card className="bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 p-6 sm:p-10 rounded-none shadow-2xl space-y-8 animate-fade-in">
             
             {/* Status Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-neutral-800">

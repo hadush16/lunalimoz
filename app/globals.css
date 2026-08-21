@@ -1,23 +1,37 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-background: #000000;
-  --color-surface: #0A0A0A;
-  --color-surface-elevated: #141414;
   --color-gold: #C5A059;
   --color-gold-light: #DFCA98;
   --color-gold-dark: #A67C37;
   --color-gold-muted: #6B5633;
-  --color-foreground: #FFFFFF;
-  --color-foreground-muted: #D1D1D1;
-  --color-foreground-subtle: #A1A1AA;
-  --color-border: #1F1F1F;
-  --color-border-light: #2D2D2D;
   --color-success: #10B981;
   --color-error: #EF4444;
   --color-warning: #F59E0B;
   --font-sans: var(--font-sans), system-ui, -apple-system, sans-serif;
   --font-serif: var(--font-serif), Georgia, serif;
+}
+
+:root {
+  --color-background: #FAFAFA;
+  --color-surface: #FFFFFF;
+  --color-surface-elevated: #F4F4F5;
+  --color-foreground: #09090B;
+  --color-foreground-muted: #52525B;
+  --color-foreground-subtle: #71717A;
+  --color-border: #E4E4E7;
+  --color-border-light: #F4F4F5;
+}
+
+.dark {
+  --color-background: #000000;
+  --color-surface: #0A0A0A;
+  --color-surface-elevated: #141414;
+  --color-foreground: #FFFFFF;
+  --color-foreground-muted: #D1D1D1;
+  --color-foreground-subtle: #A1A1AA;
+  --color-border: #1F1F1F;
+  --color-border-light: #2D2D2D;
 }
 
 * {
@@ -36,8 +50,6 @@ input, textarea, select, button {
 html, body {
   margin: 0;
   padding: 0;
-  background: var(--color-background);
-  color: var(--color-foreground);
   font-family: var(--font-sans);
   overflow-x: hidden;
   width: 100%;
@@ -45,6 +57,7 @@ html, body {
 
 body {
   min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 ::-webkit-scrollbar {
@@ -67,18 +80,23 @@ body {
 
 ::selection {
   background: var(--color-gold);
-  color: var(--color-background);
+  color: #000000;
 }
 
 .glass {
-  background: rgba(17, 17, 19, 0.7);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(197, 160, 89, 0.2);
+}
+
+.dark .glass {
+  background: rgba(17, 17, 19, 0.7);
   border: 1px solid rgba(212, 175, 55, 0.1);
 }
 
 .gold-glow {
-  box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
+  box-shadow: 0 0 20px rgba(197, 160, 89, 0.2);
 }
 
 .gold-border {
@@ -103,8 +121,8 @@ body {
 }
 
 @keyframes pulse-gold {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.4); }
-  50% { box-shadow: 0 0 0 8px rgba(212, 175, 55, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(197, 160, 89, 0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(197, 160, 89, 0); }
 }
 
 .animate-fade-in {

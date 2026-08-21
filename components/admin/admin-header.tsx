@@ -185,6 +185,8 @@ function NotificationBellUI({
   );
 }
 
+import { ThemeToggle } from "@/components/theme-toggle";
+
 export default function AdminHeader() {
   const pathname = usePathname();
 
@@ -200,14 +202,17 @@ export default function AdminHeader() {
   };
 
   return (
-    <div className="hidden md:flex items-center justify-between px-8 py-4 border-b border-neutral-800 bg-neutral-900/50 backdrop-blur-sm sticky top-0 z-30">
+    <div className="hidden md:flex items-center justify-between px-6 lg:px-8 py-4 border-b border-slate-200 dark:border-neutral-800 bg-white/90 dark:bg-neutral-900/50 backdrop-blur-sm sticky top-0 z-30 transition-colors">
       <div className="flex items-center gap-4">
-        <h1 className="text-[11px] font-black uppercase tracking-[0.3em] text-neutral-400">
+        <h1 className="text-[11px] font-black uppercase tracking-[0.3em] text-slate-600 dark:text-neutral-400">
           {getPageTitle()}
         </h1>
       </div>
 
-      <NotificationBell align="right" />
+      <div className="flex items-center gap-3 sm:gap-4">
+        <ThemeToggle />
+        <NotificationBell align="right" />
+      </div>
     </div>
   );
 }

@@ -59,18 +59,18 @@ export default function FleetClient() {
   ];
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans overflow-x-hidden w-full">
+    <div className="min-h-screen bg-white dark:bg-black text-slate-900 dark:text-white font-sans overflow-x-hidden w-full transition-colors">
       <main>
         {/* Fleet Hero */}
-        <section className="relative py-16 sm:py-32 px-4 sm:px-6 overflow-hidden bg-black text-white border-b border-neutral-900">
+        <section className="relative py-16 sm:py-32 px-4 sm:px-6 overflow-hidden bg-slate-50 dark:bg-black text-slate-900 dark:text-white border-b border-slate-200 dark:border-neutral-900 transition-colors">
           <div className="max-w-7xl mx-auto text-center relative z-20">
             <h3 className="text-gold text-[10px] font-black uppercase tracking-[0.5em] mb-4 sm:mb-6 animate-fade-in">The Luna Collection</h3>
-            <h2 className="font-serif text-2xl sm:text-4xl md:text-7xl font-black italic uppercase text-white leading-tight tracking-tight">
+            <h2 className="font-serif text-2xl sm:text-4xl md:text-7xl font-black italic uppercase text-slate-900 dark:text-white leading-tight tracking-tight">
               Elite <span className="text-gold">Fleet</span>
               <br className="hidden md:block" />
               <span className="block sm:inline sm:ml-2">Concierge Quality</span>
             </h2>
-            <p className="text-xs sm:text-sm md:text-lg text-neutral-400 mt-6 sm:mt-8 max-w-2xl mx-auto font-medium leading-relaxed px-2 sm:px-0">
+            <p className="text-xs sm:text-sm md:text-lg text-slate-600 dark:text-neutral-400 mt-6 sm:mt-8 max-w-2xl mx-auto font-medium leading-relaxed px-2 sm:px-0">
               Every vehicle in the Luna fleet is meticulously maintained and sanitised daily to meet the highest standards of luxury and safety. Experience excellence in every mile.
             </p>
           </div>
@@ -82,12 +82,12 @@ export default function FleetClient() {
         </section>
 
         {/* Fleet Grid */}
-        <section className="py-16 sm:py-24 bg-black">
+        <section className="py-16 sm:py-24 bg-white dark:bg-black transition-colors">
           <div className="max-w-7xl mx-auto px-4 sm:px-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
               {fleet.map((vehicle, index) => (
                 <div key={index} className="group">
-                  <div className="relative aspect-[16/9] bg-neutral-900 border border-neutral-800 overflow-hidden mb-8">
+                  <div className="relative aspect-[16/9] bg-slate-100 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 overflow-hidden mb-8">
                     <Image 
                       src={vehicle.image} 
                       alt={vehicle.name} 
@@ -103,35 +103,35 @@ export default function FleetClient() {
                   
                   <div className="space-y-6">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
-                      <h3 className="font-serif text-xl sm:text-3xl font-black italic uppercase text-white">{vehicle.name}</h3>
-                      <div className="flex gap-4 text-neutral-400">
+                      <h3 className="font-serif text-xl sm:text-3xl font-black italic uppercase text-slate-900 dark:text-white">{vehicle.name}</h3>
+                      <div className="flex gap-4 text-slate-600 dark:text-neutral-400">
                          <div className="flex items-center gap-1">
-                            <Users2 className="h-4 w-4 text-gold/60" />
+                            <Users2 className="h-4 w-4 text-gold/80" />
                             <span className="text-[10px] font-bold">{vehicle.capacity}</span>
                          </div>
                          <div className="flex items-center gap-1">
-                            <Briefcase className="h-4 w-4 text-gold/60" />
+                            <Briefcase className="h-4 w-4 text-gold/80" />
                             <span className="text-[10px] font-bold">{vehicle.luggage}</span>
                          </div>
                       </div>
                     </div>
                     
-                    <p className="text-neutral-400 text-xs md:text-sm leading-relaxed font-medium uppercase tracking-wide">
+                    <p className="text-slate-600 dark:text-neutral-400 text-xs md:text-sm leading-relaxed font-medium uppercase tracking-wide">
                       {vehicle.description}
                     </p>
 
-                    <div className="grid grid-cols-2 gap-y-3 pt-2">
-                       {vehicle.features.map((feature, fidx) => (
-                         <div key={fidx} className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-neutral-500">
-                            <div className="w-1 h-1 bg-gold rounded-full" />
-                            {feature}
-                         </div>
-                       ))}
+                    <div className="grid grid-cols-2 gap-3 pt-2">
+                      {vehicle.features.map((feature, i) => (
+                        <div key={i} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-slate-700 dark:text-neutral-400 border border-slate-200 dark:border-neutral-900 bg-slate-50 dark:bg-neutral-950 p-2.5">
+                          <Star className="h-3 w-3 text-gold shrink-0" />
+                          <span className="truncate">{feature}</span>
+                        </div>
+                      ))}
                     </div>
 
                     <div className="pt-6">
                       <Link href={`/booking?car=${encodeURIComponent(vehicle.name)}`}>
-                        <Button className="w-full bg-transparent hover:bg-gold text-white border border-neutral-800 hover:border-gold rounded-none py-5 sm:py-6 text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2">
+                        <Button className="w-full bg-slate-900 dark:bg-transparent hover:bg-gold dark:hover:bg-gold text-white border border-slate-800 dark:border-neutral-800 hover:border-gold rounded-none py-5 sm:py-6 text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2">
                           <Calendar className="h-4 w-4" />
                           Reserve This Vehicle
                         </Button>
