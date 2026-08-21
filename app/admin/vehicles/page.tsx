@@ -13,7 +13,7 @@ export default function AdminVehiclesPage() {
   const createVehicle = useSafeMutation(api.carTypes.create);
   const deleteVehicle = useSafeMutation(api.carTypes.remove);
 
-  const cars = carsData || DEFAULT_CAR_TYPES.map((c, i) => ({
+  const cars = carsData || DEFAULT_CAR_TYPES.map((c: any, i: number) => ({
     _id: `v-${i}`,
     name: c.name,
     description: c.description,
