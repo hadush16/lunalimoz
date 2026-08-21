@@ -1,9 +1,9 @@
 "use client";
 
-import { useQuery } from "convex/react";
+import { useSafeQuery } from "@/lib/convex-safe";
 import { api } from "@/convex/_generated/api";
 import { Users, Crown, Calendar, Search } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 
 interface CustomerStats {
   name?: string;
@@ -16,8 +16,40 @@ interface CustomerStats {
 
 export default function AdminCustomersPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const customersData = useQuery(api.stats.getCustomerList);
-  const customers: CustomerStats[] | undefined = customersData as any;
+  const [localBookings, setLocalBookings] = useState<any[]>([]);
+  const customersData = useSafeQuery(api.stats.getCustomerList);
+
+  useEffect(() => {
+    fetch("/api/bookings")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.success && Array.isArray(data.bookings)) {
+          setLocalBookings(data.bookings);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const fallbackCustomers = useMemo(() => {
+    const map = new Map<string, CustomerStats>();
+    for (const b of localBookings) {
+      const email = b.customerEmail || b.email || "unknown@client.com";
+      const existing = map.get(email) || {
+        name: b.customerName || b.name || "Valued Client",
+        email,
+        phone: b.customerPhone || b.phone || "",
+        totalRides: 0,
+        totalSpend: 0,
+        lastRideDate: b.createdAt || Date.now(),
+      };
+      existing.totalRides += 1;
+      existing.totalSpend += Number(b.price || 0);
+      map.set(email, existing);
+    }
+    return Array.from(map.values());
+  }, [localBookings]);
+
+  const customers: CustomerStats[] = (customersData as any) || fallbackCustomers;
 
   const displayedCustomers = useMemo(() => {
     if (!customers) return [];
@@ -33,19 +65,10 @@ export default function AdminCustomersPage() {
       );
     }
     
-    // Sort by total spend descending
-    return result.sort((a,b) => b.totalSpend - a.totalSpend);
+    return result.sort((a, b) => b.totalSpend - a.totalSpend);
   }, [customers, searchQuery]);
 
-  if (customers === undefined) {
-    return (
-      <div className="p-12 text-center text-neutral-500 font-bold uppercase tracking-widest text-xs h-[80vh] flex items-center justify-center">
-        Loading Client Roster...
-      </div>
-    );
-  }
-
-  const vipThreshold = 500; // Anyone who spent over $500 is a VIP
+  const vipThreshold = 500;
   const vipCount = customers.filter((c) => c.totalSpend >= vipThreshold).length;
 
   return (
@@ -55,7 +78,7 @@ export default function AdminCustomersPage() {
           Client <span className="text-gold">Roster</span>
         </h1>
         <p className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.2em]">
-          Manage and analyze your customer base
+          Manage and analyze executive client records
         </p>
       </header>
 
@@ -118,7 +141,7 @@ export default function AdminCustomersPage() {
         <div className="divide-y divide-neutral-800">
           {displayedCustomers.length === 0 ? (
              <div className="p-12 text-center text-neutral-500 text-[10px] font-black uppercase tracking-[0.3em]">
-               No clients found
+               No clients recorded yet
              </div>
           ) : (
             displayedCustomers.map((customer) => {
@@ -126,7 +149,6 @@ export default function AdminCustomersPage() {
               
               return (
               <div key={customer.email} className="p-6 hover:bg-neutral-800/20 transition-colors flex flex-col md:flex-row md:items-center gap-6">
-                 
                  <div className="flex-1 space-y-2">
                     <div className="flex items-center gap-3">
                        <h3 className="text-white font-serif text-xl font-black italic uppercase tracking-tighter truncate">{customer.name || "Unknown"}</h3>

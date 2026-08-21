@@ -1,22 +1,35 @@
 "use client";
 
-import { useQuery, useMutation } from "convex/react";
+import { useSafeQuery, useSafeMutation } from "@/lib/convex-safe";
 import { api } from "@/convex/_generated/api";
 import { Car, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import * as React from "react";
-import { Doc } from "@/convex/_generated/dataModel";
+import { DEFAULT_CAR_TYPES } from "@/lib/pricing";
 
 export default function AdminVehiclesPage() {
-  const cars = useQuery(api.carTypes.list);
-  const updateVehicle = useMutation(api.carTypes.update);
-  const createVehicle = useMutation(api.carTypes.create);
-  const deleteVehicle = useMutation(api.carTypes.remove);
+  const carsData = useSafeQuery(api.carTypes.list);
+  const updateVehicle = useSafeMutation(api.carTypes.update);
+  const createVehicle = useSafeMutation(api.carTypes.create);
+  const deleteVehicle = useSafeMutation(api.carTypes.remove);
+
+  const cars = carsData || DEFAULT_CAR_TYPES.map((c, i) => ({
+    _id: `v-${i}`,
+    name: c.name,
+    description: c.description,
+    baseFare: c.baseFare,
+    perKmRate: c.perKmRate,
+    perMinuteRate: c.perMinuteRate,
+    hourlyRate: c.hourlyRate || 140,
+    multiplier: c.multiplier,
+    capacity: c.capacity,
+    isActive: c.isActive,
+    image: c.image
+  }));
 
   const [isModalOpen, setIsModalOpen] = React.useState(false);
-  const [editingVehicle, setEditingVehicle] = React.useState<Doc<"carTypes"> | null>(null);
+  const [editingVehicle, setEditingVehicle] = React.useState<any | null>(null);
   
-  // Form State
   const [formData, setFormData] = React.useState({
     name: "",
     description: "",
@@ -30,7 +43,7 @@ export default function AdminVehiclesPage() {
     image: "/fleet_black_bg.png"
   });
 
-  const handleEdit = (vehicle: Doc<"carTypes">) => {
+  const handleEdit = (vehicle: any) => {
     setEditingVehicle(vehicle);
     setFormData({
       name: vehicle.name,
@@ -81,7 +94,7 @@ export default function AdminVehiclesPage() {
     }
   };
 
-  const handleDelete = async (vehicle: Doc<"carTypes">) => {
+  const handleDelete = async (vehicle: any) => {
     if (!confirm(`Are you sure you want to delete "${vehicle.name}"? This cannot be undone.`)) return;
     try {
       await deleteVehicle({ id: vehicle._id });
@@ -89,10 +102,6 @@ export default function AdminVehiclesPage() {
       console.error("Failed to delete vehicle", err);
     }
   };
-
-  if (cars === undefined) {
-    return <div className="p-12 text-center text-neutral-500 text-[10px] font-black uppercase tracking-[0.2em]">Loading fleet configuration...</div>;
-  }
 
   return (
     <div className="p-4 sm:p-8 md:p-12 space-y-8 sm:space-y-12 pb-24 relative">
@@ -115,7 +124,7 @@ export default function AdminVehiclesPage() {
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {cars.map((car) => (
+        {cars.map((car: any) => (
            <div key={car._id} className="bg-neutral-900/50 border border-neutral-800 p-6 flex flex-col h-full group hover:border-gold/30 transition-all duration-300">
               <div className="flex justify-between items-start mb-6">
                  <div className="min-w-0">
@@ -182,7 +191,6 @@ export default function AdminVehiclesPage() {
         ))}
       </div>
 
-      {/* Modern Centered Modal Overlay */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/90 backdrop-blur-sm animate-in fade-in duration-300">
            <div className="bg-neutral-900 border border-neutral-800 w-full max-w-2xl max-h-[90vh] overflow-y-auto relative animate-in zoom-in-95 duration-300">

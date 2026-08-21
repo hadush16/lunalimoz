@@ -1,20 +1,20 @@
 "use client";
 
-import { useQuery, useMutation } from "convex/react";
+import { useSafeQuery, useSafeMutation } from "@/lib/convex-safe";
 import { api } from "@/convex/_generated/api";
 import { Settings, Save, Building, Phone, Mail, DollarSign, Clock, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 
 export default function AdminSettingsPage() {
-  const currentSettings = useQuery(api.settings.get);
-  const updateSettings = useMutation(api.settings.update);
+  const currentSettings = useSafeQuery(api.settings.get);
+  const updateSettings = useSafeMutation(api.settings.update);
   
   const [formData, setFormData] = useState({
-    companyName: "",
-    email: "",
-    phone: "",
-    address: "",
+    companyName: "Luna Limo",
+    email: "concierge@lunalimo.com",
+    phone: "(206) 327-4411",
+    address: "1902 E Yesler way, Seattle, WA 98122",
     surgeMultiplier: 1.0,
     minimumFare: 50.0,
     notificationsEmail: true,
@@ -26,24 +26,16 @@ export default function AdminSettingsPage() {
   useEffect(() => {
     if (currentSettings) {
       setFormData({
-         companyName: currentSettings.companyName || "",
-         email: currentSettings.email || "",
-         phone: currentSettings.phone || "",
-         address: currentSettings.address || "",
+         companyName: currentSettings.companyName || "Luna Limo",
+         email: currentSettings.email || "concierge@lunalimo.com",
+         phone: currentSettings.phone || "(206) 327-4411",
+         address: currentSettings.address || "1902 E Yesler way, Seattle, WA 98122",
          surgeMultiplier: currentSettings.surgeMultiplier || 1.0,
          minimumFare: currentSettings.minimumFare || 50.0,
          notificationsEmail: currentSettings.notificationsEmail ?? true,
       });
     }
   }, [currentSettings]);
-
-  if (currentSettings === undefined) {
-    return (
-      <div className="p-12 text-center text-neutral-500 font-bold uppercase tracking-widest text-xs h-[80vh] flex items-center justify-center">
-        Loading System Configuration...
-      </div>
-    );
-  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -80,7 +72,6 @@ export default function AdminSettingsPage() {
       </header>
 
       <form onSubmit={handleSave} className="space-y-8">
-        {/* Business Details */}
         <section className="bg-neutral-900 border border-neutral-800">
           <div className="p-6 border-b border-neutral-800 flex items-center gap-2">
              <Settings className="h-4 w-4 text-gold" />
@@ -141,7 +132,6 @@ export default function AdminSettingsPage() {
           </div>
         </section>
 
-         {/* Pricing Rules */}
          <section className="bg-neutral-900 border border-neutral-800">
            <div className="p-6 border-b border-neutral-800 flex items-center gap-2">
               <DollarSign className="h-4 w-4 text-gold" />
@@ -179,7 +169,6 @@ export default function AdminSettingsPage() {
            </div>
          </section>
 
-         {/* Notifications */}
          <section className="bg-neutral-900 border border-neutral-800">
            <div className="p-6 border-b border-neutral-800 flex items-center gap-2">
               <Bell className="h-4 w-4 text-gold" />
