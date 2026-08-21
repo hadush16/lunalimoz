@@ -236,9 +236,17 @@ export default function BookingClient() {
 
   React.useEffect(() => {
     if (activeCarTypes.length > 0 && !selectedCar) {
+      const carParam = searchParams.get("car");
+      if (carParam) {
+        const match = activeCarTypes.find(c => c.name.toLowerCase() === carParam.toLowerCase());
+        if (match) {
+          setSelectedCar(match);
+          return;
+        }
+      }
       setSelectedCar(activeCarTypes[0]);
     }
-  }, [activeCarTypes, selectedCar, setSelectedCar]);
+  }, [activeCarTypes, selectedCar, setSelectedCar, searchParams]);
 
   const handlePickupSelect = async (location: SearchResult | null) => {
     setPickup(location);
@@ -321,72 +329,43 @@ export default function BookingClient() {
     setConfirmError("");
     setBooking(true);
 
-    const bookingId = "LUNA-" + Math.floor(10000 + Math.random() * 90000);
-
-    const newBookingRecord = {
-      _id: bookingId,
-      customerName: options.customerName,
-      customerEmail: options.customerEmail,
-      customerPhone: options.customerPhone,
-      pickupAddress: pickup?.address.freeformAddress || "Seattle-Tacoma Intl Airport (SEA)",
-      destinationAddress: destination?.address.freeformAddress || "Downtown Seattle Waterfront",
-      pickupDate: options.pickupDate,
-      pickupTime: options.pickupTime || "12:00",
-      carTypeName: selectedCar.name,
-      price: pricing.totalPrice,
-      passengers: options.passengers,
-      luggage: options.luggage,
-      serviceType,
-      hourlyDuration: serviceType === "hourly" ? options.hourlyDuration : undefined,
-      distance: route?.distanceInKm || 18.5,
-      duration: route?.durationInMinutes || 25,
-      status: "confirmed",
-      createdAt: Date.now(),
-    };
-
-    // Save locally for Admin Dashboard Sync
     try {
-      const existing = JSON.parse(localStorage.getItem("lunalimoz_bookings") || "[]");
-      localStorage.setItem("lunalimoz_bookings", JSON.stringify([newBookingRecord, ...existing]));
-    } catch {
-      // ignore
-    }
-
-    try {
-      const { url } = await createCheckoutSession({
-        pickupAddress: pickup?.address.freeformAddress || "Seattle-Tacoma Intl Airport (SEA)",
-        destinationAddress: destination?.address.freeformAddress || "Downtown Seattle Waterfront",
-        pickupLat: pickup?.position.lat || 47.6062,
-        pickupLng: pickup?.position.lon || -122.3321,
-        destLat: destination?.position.lat || 47.4502,
-        destLng: destination?.position.lon || -122.3088,
-        distance: route?.distanceInKm || 18.5,
-        duration: route?.durationInMinutes || 25,
-        carTypeName: selectedCar.name,
-        carTypeMultiplier: selectedCar.multiplier,
-        price: pricing.totalPrice,
-        passengers: options.passengers,
-        luggage: options.luggage,
-        accessible: options.accessible,
-        serviceType,
-        hourlyDuration: serviceType === "hourly" ? options.hourlyDuration : undefined,
-        pickupDate: options.pickupDate,
-        pickupTime: options.pickupTime || undefined,
-        customerName: options.customerName,
-        customerEmail: options.customerEmail,
-        customerPhone: options.customerPhone,
+      const res = await fetch("/api/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customerName: options.customerName,
+          customerEmail: options.customerEmail,
+          customerPhone: options.customerPhone,
+          flightDetails: options.flightDetails || "",
+          pickupAddress: pickup?.address.freeformAddress || "Seattle-Tacoma Intl Airport (SEA)",
+          destinationAddress: destination?.address.freeformAddress || "Downtown Seattle Waterfront",
+          pickupDate: options.pickupDate,
+          pickupTime: options.pickupTime || "12:00",
+          carTypeName: selectedCar.name,
+          price: pricing.totalPrice,
+          passengers: options.passengers,
+          luggage: options.luggage,
+          serviceType,
+          hourlyDuration: serviceType === "hourly" ? options.hourlyDuration : undefined,
+          distance: currentRoute?.distanceInKm || 18.5,
+          duration: currentRoute?.durationInMinutes || 25,
+        }),
       });
 
-      if (url) {
-        window.location.href = url;
+      const data = await res.json();
+      if (res.ok && data.success && data.booking) {
+        window.location.href = `/track-booking?id=${encodeURIComponent(data.booking.id)}`;
         return;
+      } else {
+        setConfirmError(data.error || "Failed to submit reservation.");
       }
     } catch (error) {
-      console.log("Stripe/Convex unconfigured, proceeding with Standalone Dev Mock Confirmation...", error);
+      console.error("Booking submission error:", error);
+      setConfirmError("Failed to submit reservation. Please try again.");
+    } finally {
+      setBooking(false);
     }
-
-    // Standalone Dev Mode Fallback: Redirect directly to confirmation success page
-    window.location.href = `/booking/success?session_id=mock_session&booking_id=${bookingId}&price=${pricing.totalPrice}`;
   };
 
   const handleReset = () => {

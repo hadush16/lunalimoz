@@ -130,7 +130,7 @@ export default function FleetClient() {
                     </div>
 
                     <div className="pt-6">
-                      <Link href="/booking">
+                      <Link href={`/booking?car=${encodeURIComponent(vehicle.name)}`}>
                         <Button className="w-full bg-transparent hover:bg-gold text-white border border-neutral-800 hover:border-gold rounded-none py-5 sm:py-6 text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2">
                           <Calendar className="h-4 w-4" />
                           Reserve This Vehicle
