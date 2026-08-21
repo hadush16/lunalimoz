@@ -5,6 +5,28 @@
     "customerPhone": "0961224955",
     "flightDetails": "",
     "pickupAddress": "2727 South Norman Street, Seattle, Washington, United States",
+    "destinationAddress": "2727 Norman Road, Windsor, Ontario, Canada",
+    "pickupDate": "2026-08-21",
+    "pickupTime": "12:00",
+    "carTypeName": "Executive Sedan",
+    "price": 83.75,
+    "passengers": 1,
+    "luggage": 1,
+    "serviceType": "point_to_point",
+    "distance": 18.5,
+    "duration": 25,
+    "status": "approved",
+    "paymentStatus": "unpaid",
+    "id": "LUNA-23938",
+    "createdAt": 1787277884915,
+    "updatedAt": 1787277989738
+  },
+  {
+    "customerName": "Hadush Brhane",
+    "customerEmail": "hadushbrhane10@gmail.com",
+    "customerPhone": "0961224955",
+    "flightDetails": "",
+    "pickupAddress": "2727 South Norman Street, Seattle, Washington, United States",
     "destinationAddress": "2727 South Norman Street, Seattle, Washington, United States",
     "pickupDate": "2026-08-21",
     "pickupTime": "12:00",
@@ -15,11 +37,11 @@
     "serviceType": "point_to_point",
     "distance": 18.5,
     "duration": 25,
-    "status": "pending_approval",
+    "status": "cancelled",
     "paymentStatus": "unpaid",
     "id": "LUNA-18830",
     "createdAt": 1787275398943,
-    "updatedAt": 1787275398943
+    "updatedAt": 1787277986941
   },
   {
     "customerName": "Hadush Brhane",
@@ -38,11 +60,11 @@
     "hourlyDuration": 2,
     "distance": 18.5,
     "duration": 25,
-    "status": "confirmed",
+    "status": "cancelled",
     "paymentStatus": "paid",
     "id": "LUNA-97935",
     "createdAt": 1787272310366,
-    "updatedAt": 1787272418957
+    "updatedAt": 1787277992500
   },
   {
     "id": "LUNA-84920",
