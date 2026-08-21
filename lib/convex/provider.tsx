@@ -4,20 +4,19 @@ import { ConvexReactClient } from "convex/react";
 import { ConvexAuthNextjsProvider } from "@convex-dev/auth/nextjs";
 import { ReactNode } from "react";
 
-const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
-export const isValidConvex = typeof convexUrl === "string" && convexUrl.startsWith("https://") && !convexUrl.includes("dummy");
+const rawUrl = process.env.NEXT_PUBLIC_CONVEX_URL || "";
+const isValidUrl = typeof rawUrl === "string" && rawUrl.startsWith("https://") && rawUrl.includes(".convex.");
+const convexUrl = isValidUrl ? rawUrl : "https://dummy-placeholder.convex.cloud";
+
+export const isValidConvex = isValidUrl;
+
+const convex = new ConvexReactClient(convexUrl, {
+  unsavedChangesWarning: false,
+});
 
 export function ConvexProvider({ children }: { children: ReactNode }) {
-  if (!isValidConvex) {
-    return <>{children}</>;
-  }
-
-  const client = new ConvexReactClient(convexUrl!, {
-    unsavedChangesWarning: false,
-  });
-
   return (
-    <ConvexAuthNextjsProvider client={client}>
+    <ConvexAuthNextjsProvider client={convex}>
       {children}
     </ConvexAuthNextjsProvider>
   );
