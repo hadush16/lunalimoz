@@ -37,63 +37,66 @@ export async function searchPlaces(query: string): Promise<SearchResult[]> {
 
   const apiKey = getApiKey();
   
-  if (apiKey) {
+  // 1. Attempt TomTom search if a valid non-placeholder key is provided
+  if (apiKey && apiKey !== "your_api_key_here" && !apiKey.includes("dummy") && !apiKey.includes("placeholder")) {
     try {
       const baseUrl = `https://api.tomtom.com/search/2/search/${encodeURIComponent(query)}.json?limit=8&language=en-US&countrySet=US&lat=47.6062&lon=-122.3321&key=${apiKey}`;
       const response = await fetch(baseUrl);
-      const data = (await response.json()) as SearchResponse;
-
-      if (response.ok && data?.results && data.results.length > 0) {
-        return data.results.map((result) => ({
-          id: result.id,
-          address: result.address,
-          position: result.position,
-          type: result.type,
-        }));
+      if (response.ok) {
+        const data = (await response.json()) as SearchResponse;
+        if (data?.results && data.results.length > 0) {
+          return data.results.map((result) => ({
+            id: result.id,
+            address: result.address,
+            position: result.position,
+            type: result.type,
+          }));
+        }
       }
     } catch {
-      // Fallback to Photon OpenStreetMap API
+      // Fallback silently to OpenStreetMap Photon
     }
   }
 
-  // Graceful Free OpenStreetMap / Photon Geocoding API Fallback (No Key Required)
+  // 2. Instant Free Fallback (No API Key Required & 0 Console Errors)
   try {
     const photonUrl = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=8&lat=47.6062&lon=-122.3321`;
     const res = await fetch(photonUrl);
-    const data = await res.json();
+    if (res.ok) {
+      const data = await res.json();
+      if (data?.features && Array.isArray(data.features)) {
+        return data.features.map((feature: any, idx: number) => {
+          const props = feature.properties || {};
+          const coords = feature.geometry?.coordinates || [-122.3321, 47.6062];
+          const parts = [
+            props.name,
+            props.street ? `${props.housenumber || ""} ${props.street}`.trim() : null,
+            props.city || props.town || props.district,
+            props.state,
+            props.country,
+          ].filter(Boolean);
 
-    if (res.ok && data?.features && Array.isArray(data.features)) {
-      return data.features.map((feature: any, idx: number) => {
-        const props = feature.properties || {};
-        const coords = feature.geometry?.coordinates || [-122.3321, 47.6062];
-        const parts = [
-          props.name,
-          props.street ? `${props.housenumber || ""} ${props.street}`.trim() : null,
-          props.city || props.town || props.district,
-          props.state,
-          props.country,
-        ].filter(Boolean);
+          const freeformAddress = parts.length > 0 ? parts.join(", ") : query;
 
-        const freeformAddress = parts.length > 0 ? parts.join(", ") : query;
-
-        return {
-          id: String(props.osm_id || idx),
-          address: {
-            freeformAddress,
-            streetName: props.street,
-            municipality: props.city || props.town || props.state,
-            country: props.country,
-          },
-          position: {
-            lat: coords[1],
-            lon: coords[0],
-          },
-          type: props.osm_value || "POI",
-        };
-      });
+          return {
+            id: String(props.osm_id || idx),
+            address: {
+              freeformAddress,
+              streetName: props.street,
+              municipality: props.city || props.town || props.state,
+              country: props.country,
+            },
+            position: {
+              lat: coords[1],
+              lon: coords[0],
+            },
+            type: props.osm_value || "POI",
+          };
+        });
+      }
     }
-  } catch (error) {
-    console.error("Geocoding search error:", error);
+  } catch {
+    // Ignore fallback errors
   }
 
   return [];

@@ -33,6 +33,7 @@ export function Footer() {
               alt="Luna Limo" 
               width={180}
               height={64}
+              style={{ height: 'auto', width: 'auto' }}
               className="h-16 w-auto grayscale transition-all hover:grayscale-0 duration-500" 
             />
           </Link>
