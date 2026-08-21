@@ -252,7 +252,7 @@ function BookingClientUI({ dbCarTypes }: { dbCarTypes: any }) {
     if (activeCarTypes.length > 0 && !selectedCar) {
       const carParam = searchParams.get("car");
       if (carParam) {
-        const match = activeCarTypes.find(c => c.name.toLowerCase() === carParam.toLowerCase());
+        const match = activeCarTypes.find((c: CarType) => c.name.toLowerCase() === carParam.toLowerCase());
         if (match) {
           setSelectedCar(match);
           return;
@@ -675,7 +675,7 @@ function BookingClientUI({ dbCarTypes }: { dbCarTypes: any }) {
             {bookingStep === "vehicle" && (
               <div className="space-y-10 animate-fade-in">
                 <div className="space-y-2 sm:space-y-4">
-                  {activeCarTypes.map((car) => (
+                  {activeCarTypes.map((car: CarType) => (
                     <button
                       key={car.name}
                       onClick={() => handleCarSelect(car)}

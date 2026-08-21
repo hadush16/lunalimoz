@@ -50,7 +50,7 @@ function PushAlertManagerConnected() {
         }
 
         if (typeof window.pushalertbyid === "function") {
-            window.pushalertbyid(function(result) {
+            window.pushalertbyid(function(result: any) {
                 if (result && result.subscriber_id) {
                     syncId(result.subscriber_id);
                 }
@@ -63,7 +63,7 @@ function PushAlertManagerConnected() {
           .then(() => {
             clearInterval(interval);
           })
-          .catch(err => console.error("PushAlertManager: Auth sync failed:", err));
+          .catch((err: any) => console.error("PushAlertManager: Auth sync failed:", err));
     };
 
     return () => clearInterval(interval);
@@ -78,7 +78,7 @@ function PushAlertManagerConnected() {
             if (paSubId) {
                 updatePushIdByEmail({ pushId: paSubId, email: fallbackEmail })
                   .then(() => clearInterval(interval))
-                  .catch(e => console.error("PushAlertManager: Fallback sync failed:", e));
+                  .catch((e: any) => console.error("PushAlertManager: Fallback sync failed:", e));
                 return;
             }
         }
@@ -86,16 +86,16 @@ function PushAlertManagerConnected() {
         if (window._pa && window._pa.subscriber_id) {
             updatePushIdByEmail({ pushId: window._pa.subscriber_id, email: fallbackEmail })
               .then(() => clearInterval(interval))
-              .catch(e => console.error("PushAlertManager: Fallback sync failed:", e));
+              .catch((e: any) => console.error("PushAlertManager: Fallback sync failed:", e));
             return;
         }
 
         if (typeof window.pushalertbyid === "function") {
-            window.pushalertbyid(function(result) {
+            window.pushalertbyid(function(result: any) {
                 if (result && result.subscriber_id) {
                     updatePushIdByEmail({ pushId: result.subscriber_id, email: fallbackEmail })
                       .then(() => clearInterval(interval))
-                      .catch(e => console.error("PushAlertManager: Fallback sync failed:", e));
+                      .catch((e: any) => console.error("PushAlertManager: Fallback sync failed:", e));
                 }
             });
         }
