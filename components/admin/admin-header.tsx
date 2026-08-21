@@ -6,19 +6,49 @@ import { Bell, Check, CheckCheck, CalendarDays, AlertTriangle, Info, X } from "l
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { isValidConvex } from "@/lib/convex/provider";
 
-// ─── Shared Notification Bell (used in both desktop header & mobile header) ───
 export function NotificationBell({ align = "right" }: { align?: "right" | "left" }) {
-  const pathname = usePathname();
+  if (!isValidConvex) {
+    return <NotificationBellUI align={align} unreadCount={0} notifications={[]} markAsRead={async () => {}} markAllAsRead={async () => {}} />;
+  }
+  return <NotificationBellConnected align={align} />;
+}
+
+function NotificationBellConnected({ align = "right" }: { align?: "right" | "left" }) {
   const unreadCount = useQuery(api.notifications.unreadCount) ?? 0;
   const notifications = useQuery(api.notifications.list, { limit: 15 });
   const markAsRead = useMutation(api.notifications.markAsRead);
   const markAllAsRead = useMutation(api.notifications.markAllAsRead);
 
+  return (
+    <NotificationBellUI
+      align={align}
+      unreadCount={unreadCount}
+      notifications={notifications || []}
+      markAsRead={markAsRead}
+      markAllAsRead={markAllAsRead}
+    />
+  );
+}
+
+function NotificationBellUI({
+  align = "right",
+  unreadCount,
+  notifications,
+  markAsRead,
+  markAllAsRead,
+}: {
+  align?: "right" | "left";
+  unreadCount: number;
+  notifications: any[];
+  markAsRead: (args: any) => Promise<any>;
+  markAllAsRead: (args: any) => Promise<any>;
+}) {
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
 
-  // Close popup when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
@@ -31,7 +61,6 @@ export function NotificationBell({ align = "right" }: { align?: "right" | "left"
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen]);
 
-  // Close popup on route change
   useEffect(() => {
     setIsOpen(false);
   }, [pathname]);
@@ -62,7 +91,11 @@ export function NotificationBell({ align = "right" }: { align?: "right" | "left"
 
   const handleNotifClick = async (id: string, isRead: boolean) => {
     if (!isRead) {
-      await markAsRead({ id: id as any });
+      try {
+        await markAsRead({ id: id as any });
+      } catch {
+        // ignore
+      }
     }
   };
 
@@ -75,7 +108,6 @@ export function NotificationBell({ align = "right" }: { align?: "right" | "left"
       >
         <Bell className={`h-4 w-4 transition-colors ${isOpen ? "text-gold" : "text-neutral-400 group-hover:text-gold"}`} />
         
-        {/* Badge */}
         {unreadCount > 0 && (
           <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center bg-gold text-black text-[9px] font-black rounded-full animate-in zoom-in duration-300">
             {unreadCount > 9 ? "9+" : unreadCount}
@@ -83,10 +115,8 @@ export function NotificationBell({ align = "right" }: { align?: "right" | "left"
         )}
       </button>
 
-      {/* Notification Popup */}
       {isOpen && (
         <div className={`absolute ${align === "right" ? "right-0" : "left-0"} top-full mt-2 w-[min(380px,calc(100vw-2rem))] bg-neutral-900 border border-neutral-800 shadow-2xl shadow-black/50 z-50 animate-in slide-in-from-top-2 fade-in duration-200`}>
-          {/* Popup Header */}
           <div className="flex items-center justify-between px-4 sm:px-5 py-4 border-b border-neutral-800">
             <div className="flex items-center gap-3">
               <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white">Notifications</h3>
@@ -115,7 +145,6 @@ export function NotificationBell({ align = "right" }: { align?: "right" | "left"
             </div>
           </div>
 
-          {/* Notification List */}
           <div className="max-h-[60vh] sm:max-h-[400px] overflow-y-auto overscroll-contain">
             {!notifications || notifications.length === 0 ? (
               <div className="py-16 text-center">
@@ -143,7 +172,6 @@ export function NotificationBell({ align = "right" }: { align?: "right" | "left"
             )}
           </div>
 
-          {/* Popup Footer */}
           {notifications && notifications.length > 0 && (
             <div className="border-t border-neutral-800 px-5 py-3">
               <p className="text-[9px] font-bold uppercase tracking-widest text-neutral-600 text-center">
@@ -157,7 +185,6 @@ export function NotificationBell({ align = "right" }: { align?: "right" | "left"
   );
 }
 
-// ─── Desktop Admin Header Bar ─────────────────────────────────────────────────
 export default function AdminHeader() {
   const pathname = usePathname();
 
@@ -174,20 +201,17 @@ export default function AdminHeader() {
 
   return (
     <div className="hidden md:flex items-center justify-between px-8 py-4 border-b border-neutral-800 bg-neutral-900/50 backdrop-blur-sm sticky top-0 z-30">
-      {/* Left: Page Title */}
       <div className="flex items-center gap-4">
         <h1 className="text-[11px] font-black uppercase tracking-[0.3em] text-neutral-400">
           {getPageTitle()}
         </h1>
       </div>
 
-      {/* Right: Notification Bell */}
       <NotificationBell align="right" />
     </div>
   );
 }
 
-// ─── Notification Item ────────────────────────────────────────────────────────
 function NotifItem({
   notif,
   getNotifIcon,
@@ -210,7 +234,6 @@ function NotifItem({
         !notif.isRead ? "bg-gold/[0.03]" : ""
       }`}
     >
-      {/* Unread dot */}
       <div className="mt-1 flex-shrink-0">
         {!notif.isRead ? (
           <div className="w-2 h-2 rounded-full bg-gold shadow-[0_0_6px_theme(colors.gold)]" />
@@ -219,12 +242,10 @@ function NotifItem({
         )}
       </div>
 
-      {/* Icon */}
       <div className="mt-0.5 flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-neutral-800/50 border border-neutral-700/50">
         {getNotifIcon(notif.type)}
       </div>
 
-      {/* Content */}
       <div className="flex-1 min-w-0">
         <p className={`text-xs font-bold truncate ${!notif.isRead ? "text-white" : "text-neutral-400"}`}>
           {notif.title}

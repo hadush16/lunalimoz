@@ -123,10 +123,22 @@ interface BookingOptions {
 
 type ServiceType = "point_to_point" | "hourly";
 type BookingStep = "trip" | "vehicle" | "review";
+import { isValidConvex } from "@/lib/convex/provider";
 
 export default function BookingClient() {
-  const searchParams = useSearchParams();
+  if (!isValidConvex) {
+    return <BookingClientUI dbCarTypes={null} />;
+  }
+  return <BookingClientConnected />;
+}
+
+function BookingClientConnected() {
   const dbCarTypes = useQuery(api.carTypes.list);
+  return <BookingClientUI dbCarTypes={dbCarTypes} />;
+}
+
+function BookingClientUI({ dbCarTypes }: { dbCarTypes: any }) {
+  const searchParams = useSearchParams();
 
   const activeCarTypes = React.useMemo(() => {
     const list = dbCarTypes?.filter((car: CarType) => car.isActive) || [];

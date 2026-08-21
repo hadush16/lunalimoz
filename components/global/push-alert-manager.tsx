@@ -1,26 +1,26 @@
 "use client";
 
 import * as React from "react";
-import { useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import { useConvexAuth } from "convex/react";
-
-declare global {
-  interface Window {
-    PushAlertCo?: {
-      subs_id?: string;
-      subscriber_id?: string;
-      push_id?: string;
-      sub_id?: string;
-    };
-    pushalertbyid?: (callback: (result: { subscriber_id?: string }) => void) => void;
-    _pa?: {
-      subscriber_id?: string;
-    };
-  }
-}
+import { isValidConvex } from "@/lib/convex/provider";
 
 export function PushAlertManager() {
+  if (!isValidConvex) {
+    return (
+      <script
+        async
+        src="https://cdn.pushalert.co/unified_618b54c7a30d19a39ece4ecd62b85733.js"
+        type="text/javascript"
+      />
+    );
+  }
+  return <PushAlertManagerConnected />;
+}
+
+function PushAlertManagerConnected() {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { useMutation, useConvexAuth } = require("convex/react");
+  const { api } = require("@/convex/_generated/api");
+
   const { isAuthenticated } = useConvexAuth();
   const updatePushId = useMutation(api.users.updatePushId);
   const updatePushIdByEmail = useMutation(api.users.updatePushIdByEmail);
