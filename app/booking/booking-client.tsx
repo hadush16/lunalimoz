@@ -21,7 +21,8 @@ import {
   Phone,
   ShieldCheck,
   Calendar,
-  Info
+  Info,
+  Plane
 } from "lucide-react";
 import { LocationInput } from "@/components/booking/location-input";
 import { Card } from "@/components/ui/card";
@@ -116,6 +117,7 @@ interface BookingOptions {
   customerName: string;
   customerEmail: string;
   customerPhone: string;
+  flightDetails?: string;
   hourlyDuration: number;
 }
 
@@ -834,6 +836,17 @@ export default function BookingClient() {
                           className="w-full bg-neutral-900 border border-neutral-800 px-4 py-4 rounded-none text-sm font-bold text-white outline-none focus:border-gold transition-colors placeholder:text-neutral-700 font-sans"
                         />
                       </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-neutral-500 flex items-center gap-2">
+                        <Plane className="h-3 w-3 text-gold" /> Flight Number / Airport Info (Optional)
+                      </label>
+                      <input
+                        value={options.flightDetails || ""}
+                        onChange={(e) => updateOption("flightDetails", e.target.value)}
+                        placeholder="e.g. DL 1482 - Arriving SEA Terminal B"
+                        className="w-full bg-neutral-900 border border-neutral-800 px-4 py-4 rounded-none text-sm font-bold text-white outline-none focus:border-gold transition-colors placeholder:text-neutral-700 font-sans"
+                      />
                     </div>
                   </div>
                 </div>
