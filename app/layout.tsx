@@ -151,15 +151,15 @@ export default function RootLayout({
 }>) {
   return (
     <ConvexAuthNextjsServerProvider>
-      <html lang="en" suppressHydrationWarning className={`${dmSans.variable} ${dmSerif.variable} h-full antialiased`}>
+      <html lang="en" className={`${dmSans.variable} ${dmSerif.variable} h-full antialiased`} suppressHydrationWarning>
         <head>
           <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
           />
         </head>
-        <body className="h-full min-h-screen bg-white dark:bg-black text-slate-900 dark:text-white font-sans flex flex-col transition-colors duration-300">
-          <ThemeProvider>
+        <body className="h-full min-h-screen bg-background text-foreground font-sans flex flex-col transition-colors duration-200">
+          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
             <ConvexProvider>
               <Header />
               <div className="flex-1">

@@ -1,11 +1,12 @@
 "use client";
 
 import * as React from "react";
+import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
-import { Sun, Moon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-export function ThemeToggle({ className = "" }: { className?: string }) {
-  const { theme, setTheme, resolvedTheme } = useTheme();
+export function ThemeToggle({ className }: { className?: string }) {
+  const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
@@ -14,24 +15,32 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
 
   if (!mounted) {
     return (
-      <div className={`w-9 h-9 border border-neutral-800 bg-neutral-900/50 ${className}`} />
+      <Button
+        variant="ghost"
+        size="icon"
+        className={`w-9 h-9 border border-neutral-300 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200 rounded-full ${className || ""}`}
+        aria-label="Toggle theme"
+      >
+        <Sun className="h-4 w-4" />
+      </Button>
     );
   }
 
-  const isDark = resolvedTheme === "dark";
+  const isDark = theme === "dark";
 
   return (
-    <button
+    <Button
+      variant="ghost"
+      size="icon"
       onClick={() => setTheme(isDark ? "light" : "dark")}
-      className={`relative inline-flex items-center justify-center p-2 rounded-none border border-neutral-300 dark:border-neutral-800 bg-white dark:bg-black text-neutral-800 dark:text-gold hover:border-gold transition-all duration-300 group shadow-sm ${className}`}
-      title={isDark ? "Switch to Light Luxury Theme" : "Switch to Dark Executive Theme"}
-      aria-label="Toggle Theme"
+      className={`w-9 h-9 border border-neutral-300 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-900 text-amber-600 dark:text-gold hover:bg-neutral-200 dark:hover:bg-neutral-800 rounded-full transition-all duration-300 ${className || ""}`}
+      aria-label="Toggle theme"
     >
       {isDark ? (
-        <Sun className="h-4 w-4 text-gold group-hover:rotate-45 transition-transform duration-300" />
+        <Sun className="h-4 w-4 transition-transform duration-300 hover:rotate-45" />
       ) : (
-        <Moon className="h-4 w-4 text-slate-800 group-hover:-rotate-12 transition-transform duration-300" />
+        <Moon className="h-4 w-4 transition-transform duration-300 hover:-rotate-12" />
       )}
-    </button>
+    </Button>
   );
 }

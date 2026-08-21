@@ -103,10 +103,10 @@ function NotificationBellUI({
     <div className="relative" ref={popupRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2.5 rounded-none border border-neutral-800 bg-black hover:border-gold/40 transition-all duration-300 group"
+        className="relative p-2.5 rounded-none border border-slate-200 dark:border-neutral-800 bg-white dark:bg-black hover:border-amber-500 dark:hover:border-gold/40 transition-all duration-300 group"
         aria-label="Notifications"
       >
-        <Bell className={`h-4 w-4 transition-colors ${isOpen ? "text-gold" : "text-neutral-400 group-hover:text-gold"}`} />
+        <Bell className={`h-4 w-4 transition-colors ${isOpen ? "text-amber-600 dark:text-gold" : "text-slate-500 dark:text-neutral-400 group-hover:text-amber-600 dark:group-hover:text-gold"}`} />
         
         {unreadCount > 0 && (
           <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center bg-gold text-black text-[9px] font-black rounded-full animate-in zoom-in duration-300">
@@ -116,10 +116,10 @@ function NotificationBellUI({
       </button>
 
       {isOpen && (
-        <div className={`absolute ${align === "right" ? "right-0" : "left-0"} top-full mt-2 w-[min(380px,calc(100vw-2rem))] bg-neutral-900 border border-neutral-800 shadow-2xl shadow-black/50 z-50 animate-in slide-in-from-top-2 fade-in duration-200`}>
-          <div className="flex items-center justify-between px-4 sm:px-5 py-4 border-b border-neutral-800">
+        <div className={`absolute ${align === "right" ? "right-0" : "left-0"} top-full mt-2 w-[min(380px,calc(100vw-2rem))] bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-2xl shadow-black/20 dark:shadow-black/50 z-50 animate-in slide-in-from-top-2 fade-in duration-200`}>
+          <div className="flex items-center justify-between px-4 sm:px-5 py-4 border-b border-slate-200 dark:border-neutral-800">
             <div className="flex items-center gap-3">
-              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white">Notifications</h3>
+              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-900 dark:text-white">Notifications</h3>
               {unreadCount > 0 && (
                 <span className="bg-gold/10 text-gold text-[9px] font-black px-2 py-0.5 border border-gold/20">
                   {unreadCount} NEW
@@ -202,14 +202,14 @@ export default function AdminHeader() {
   };
 
   return (
-    <div className="hidden md:flex items-center justify-between px-6 lg:px-8 py-4 border-b border-slate-200 dark:border-neutral-800 bg-white/90 dark:bg-neutral-900/50 backdrop-blur-sm sticky top-0 z-30 transition-colors">
+    <div className="hidden md:flex items-center justify-between px-8 py-4 border-b border-slate-200 dark:border-neutral-800 bg-white/80 dark:bg-neutral-900/50 backdrop-blur-sm sticky top-0 z-30 transition-colors">
       <div className="flex items-center gap-4">
         <h1 className="text-[11px] font-black uppercase tracking-[0.3em] text-slate-600 dark:text-neutral-400">
           {getPageTitle()}
         </h1>
       </div>
 
-      <div className="flex items-center gap-3 sm:gap-4">
+      <div className="flex items-center gap-3">
         <ThemeToggle />
         <NotificationBell align="right" />
       </div>

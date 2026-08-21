@@ -116,24 +116,24 @@ export default function AdminBookingsPage() {
   return (
     <div className="p-4 sm:p-8 md:p-12 space-y-8 pb-24">
       <header className="space-y-4">
-        <h1 className="font-serif text-3xl md:text-5xl font-black italic uppercase text-white tracking-tight">
-          Reservation <span className="text-gold">Management</span>
+        <h1 className="font-serif text-3xl md:text-5xl font-black italic uppercase text-slate-900 dark:text-white tracking-tight">
+          Reservation <span className="text-amber-600 dark:text-gold">Management</span>
         </h1>
-        <p className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.2em]">
+        <p className="text-slate-500 dark:text-neutral-500 text-[10px] font-black uppercase tracking-[0.2em]">
           Review, approve, and manage executive journeys
         </p>
       </header>
 
       {/* Search & Filter Bar */}
-      <div className="bg-neutral-900 border border-neutral-800 p-4 flex flex-col sm:flex-row gap-4 justify-between">
+      <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 p-4 flex flex-col sm:flex-row gap-4 justify-between shadow-sm">
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-neutral-500" />
           <input 
             type="text" 
             placeholder="Search by customer name, email or reference..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-black border border-neutral-800 pl-10 pr-4 py-3 text-xs text-white focus:border-gold outline-none"
+            className="w-full bg-slate-50 dark:bg-black border border-slate-200 dark:border-neutral-800 pl-10 pr-4 py-3 text-xs text-slate-900 dark:text-white focus:border-amber-500 dark:focus:border-gold outline-none"
           />
         </div>
         
@@ -141,7 +141,7 @@ export default function AdminBookingsPage() {
           <select 
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-black border border-neutral-800 px-4 py-3 text-xs text-white uppercase tracking-widest font-bold focus:border-gold outline-none"
+            className="bg-slate-50 dark:bg-black border border-slate-200 dark:border-neutral-800 px-4 py-3 text-xs text-slate-900 dark:text-white uppercase tracking-widest font-bold focus:border-amber-500 dark:focus:border-gold outline-none"
           >
             <option value="all">ALL STATUSES</option>
             <option value="pending_approval">PENDING APPROVAL</option>

@@ -7,15 +7,8 @@ import { Button } from "@/components/ui/button";
 import { 
   Users, 
   Briefcase, 
-  Wifi, 
-  Coffee, 
-  ShieldCheck, 
-  Users2,
-  ChevronRight,
-  Star,
-  Wind,
-  Calendar,
-  ArrowRight
+  Calendar, 
+  CheckCircle2
 } from "lucide-react";
 
 export default function FleetClient() {
@@ -59,161 +52,82 @@ export default function FleetClient() {
   ];
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black text-slate-900 dark:text-white font-sans overflow-x-hidden w-full transition-colors">
+    <div className="min-h-screen bg-slate-50 dark:bg-black text-slate-900 dark:text-white font-sans overflow-x-hidden w-full transition-colors duration-200">
       <main>
         {/* Fleet Hero */}
-        <section className="relative py-16 sm:py-32 px-4 sm:px-6 overflow-hidden bg-slate-50 dark:bg-black text-slate-900 dark:text-white border-b border-slate-200 dark:border-neutral-900 transition-colors">
+        <section className="relative py-16 sm:py-24 px-4 sm:px-6 overflow-hidden bg-white dark:bg-black border-b border-slate-200 dark:border-neutral-900">
           <div className="max-w-7xl mx-auto text-center relative z-20">
-            <h3 className="text-gold text-[10px] font-black uppercase tracking-[0.5em] mb-4 sm:mb-6 animate-fade-in">The Luna Collection</h3>
-            <h2 className="font-serif text-2xl sm:text-4xl md:text-7xl font-black italic uppercase text-slate-900 dark:text-white leading-tight tracking-tight">
-              Elite <span className="text-gold">Fleet</span>
+            <h3 className="text-amber-600 dark:text-gold text-[10px] font-black uppercase tracking-[0.5em] mb-4 sm:mb-6 animate-fade-in">The Luna Collection</h3>
+            <h1 className="font-serif text-3xl sm:text-5xl md:text-7xl font-black italic uppercase text-slate-900 dark:text-white leading-tight tracking-tight">
+              Elite <span className="text-amber-600 dark:text-gold">Fleet</span>
               <br className="hidden md:block" />
               <span className="block sm:inline sm:ml-2">Concierge Quality</span>
-            </h2>
-            <p className="text-xs sm:text-sm md:text-lg text-slate-600 dark:text-neutral-400 mt-6 sm:mt-8 max-w-2xl mx-auto font-medium leading-relaxed px-2 sm:px-0">
+            </h1>
+            <p className="text-xs sm:text-sm md:text-base text-slate-600 dark:text-neutral-400 mt-6 sm:mt-8 max-w-2xl mx-auto font-medium leading-relaxed px-2 sm:px-0">
               Every vehicle in the Luna fleet is meticulously maintained and sanitised daily to meet the highest standards of luxury and safety. Experience excellence in every mile.
             </p>
-          </div>
-          
-          {/* Subtle Background Elements */}
-          <div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden z-0 opacity-20">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gold/5 rounded-full blur-[120px]" />
           </div>
         </section>
 
         {/* Fleet Grid */}
-        <section className="py-16 sm:py-24 bg-white dark:bg-black transition-colors">
+        <section className="py-16 sm:py-24 bg-slate-50 dark:bg-black">
           <div className="max-w-7xl mx-auto px-4 sm:px-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-10 lg:gap-16">
               {fleet.map((vehicle, index) => (
-                <div key={index} className="group">
-                  <div className="relative aspect-[16/9] bg-slate-100 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 overflow-hidden mb-8">
-                    <Image 
-                      src={vehicle.image} 
-                      alt={vehicle.name} 
-                      fill 
-                      sizes="(max-width: 768px) 100vw, 50vw"
-                      loading="lazy"
-                      className="object-contain grayscale hover:grayscale-0 transition-all duration-1000 scale-110 group-hover:scale-125"
-                    />
-                    <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-black/90 to-transparent">
-                       <span className="text-gold text-[9px] font-black uppercase tracking-[0.3em]">{vehicle.type}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-6">
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
-                      <h3 className="font-serif text-xl sm:text-3xl font-black italic uppercase text-slate-900 dark:text-white">{vehicle.name}</h3>
-                      <div className="flex gap-4 text-slate-600 dark:text-neutral-400">
-                         <div className="flex items-center gap-1">
-                            <Users2 className="h-4 w-4 text-gold/80" />
-                            <span className="text-[10px] font-bold">{vehicle.capacity}</span>
-                         </div>
-                         <div className="flex items-center gap-1">
-                            <Briefcase className="h-4 w-4 text-gold/80" />
-                            <span className="text-[10px] font-bold">{vehicle.luggage}</span>
-                         </div>
+                <div key={index} className="group bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 p-6 sm:p-8 flex flex-col justify-between shadow-sm hover:shadow-xl transition-all duration-300">
+                  <div>
+                    <div className="relative aspect-[16/9] bg-slate-100 dark:bg-neutral-950 border border-slate-200 dark:border-neutral-800 overflow-hidden mb-6">
+                      <Image 
+                        src={vehicle.image} 
+                        alt={vehicle.name} 
+                        fill 
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                        loading="lazy"
+                        className="object-contain transition-all duration-700 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+                         <span className="text-amber-400 dark:text-gold text-[9px] font-black uppercase tracking-[0.3em]">{vehicle.type}</span>
                       </div>
                     </div>
                     
-                    <p className="text-slate-600 dark:text-neutral-400 text-xs md:text-sm leading-relaxed font-medium uppercase tracking-wide">
-                      {vehicle.description}
-                    </p>
-
-                    <div className="grid grid-cols-2 gap-3 pt-2">
-                      {vehicle.features.map((feature, i) => (
-                        <div key={i} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-slate-700 dark:text-neutral-400 border border-slate-200 dark:border-neutral-900 bg-slate-50 dark:bg-neutral-950 p-2.5">
-                          <Star className="h-3 w-3 text-gold shrink-0" />
-                          <span className="truncate">{feature}</span>
+                    <div className="space-y-4">
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-2">
+                        <h2 className="font-serif text-2xl font-black italic uppercase text-slate-900 dark:text-white">{vehicle.name}</h2>
+                        <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-neutral-400 shrink-0">
+                          <span className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5 text-amber-600 dark:text-gold" /> {vehicle.capacity}</span>
+                          <span className="flex items-center gap-1.5"><Briefcase className="h-3.5 w-3.5 text-amber-600 dark:text-gold" /> {vehicle.luggage}</span>
                         </div>
-                      ))}
-                    </div>
+                      </div>
 
-                    <div className="pt-6">
-                      <Link href={`/booking?car=${encodeURIComponent(vehicle.name)}`}>
-                        <Button className="w-full bg-slate-900 dark:bg-transparent hover:bg-gold dark:hover:bg-gold text-white border border-slate-800 dark:border-neutral-800 hover:border-gold rounded-none py-5 sm:py-6 text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2">
-                          <Calendar className="h-4 w-4" />
-                          Reserve This Vehicle
-                        </Button>
-                      </Link>
+                      <p className="text-slate-600 dark:text-neutral-400 text-xs font-medium leading-relaxed">
+                        {vehicle.description}
+                      </p>
+
+                      <div className="grid grid-cols-2 gap-2 pt-2">
+                        {vehicle.features.map((feat, i) => (
+                          <span key={i} className="text-[10px] font-bold text-slate-700 dark:text-neutral-300 flex items-center gap-2">
+                            <CheckCircle2 className="h-3.5 w-3.5 text-amber-600 dark:text-gold shrink-0" />
+                            {feat}
+                          </span>
+                        ))}
+                      </div>
                     </div>
+                  </div>
+
+                  <div className="pt-6 mt-6 border-t border-slate-200 dark:border-neutral-800">
+                    <Link href={`/booking?car=${encodeURIComponent(vehicle.name)}`}>
+                      <Button className="w-full bg-gold hover:bg-gold-dark text-white rounded-none py-5 text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2">
+                        <Calendar className="h-4 w-4" />
+                        Reserve This Vehicle
+                      </Button>
+                    </Link>
                   </div>
                 </div>
               ))}
             </div>
           </div>
         </section>
-
-        {/* Fleet Standards */}
-        <section className="py-16 sm:py-32 bg-neutral-900 border-t border-neutral-800">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6">
-            <div className="grid lg:grid-cols-2 gap-16 items-center">
-               <div className="space-y-8">
-                  <h3 className="text-gold text-[10px] font-black uppercase tracking-[0.3em]">Luna Standards</h3>
-                  <h2 className="font-serif text-2xl sm:text-5xl font-black italic uppercase text-white leading-tight">
-                    Beyond Simple <span className="text-gold">Maintenance</span>
-                  </h2>
-                  <p className="text-neutral-400 text-sm md:text-base leading-relaxed font-medium uppercase tracking-[0.05em]">
-                    Our commitment to excellence extends to the microscopic level. Every vehicle undergoes a rigorous 50-point inspection daily, ensuring mechanical perfection and aesthetic flawlessness.
-                  </p>
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 pt-4">
-                     {[
-                       { title: "Daily Deep Clean", desc: "Hospital-grade sanitization after every journey.", icon: <Star className="h-6 w-6" /> },
-                       { title: "Point To Point WiFi", desc: "Stay connected with high-speed 5G in every vehicle.", icon: <Wifi className="h-6 w-6" /> },
-                       { title: "Climate Control", desc: "Private zones tailored to your exact preference.", icon: <Wind className="h-6 w-6" /> },
-                       { title: "Discreet Transit", desc: "Privacy glass and acoustic insulation as standard.", icon: <ShieldCheck className="h-6 w-6" /> },
-                     ].map((item, i) => (
-                       <div key={i} className="space-y-3">
-                          <div className="text-gold">{item.icon}</div>
-                          <h4 className="font-serif text-lg font-black italic uppercase text-white">{item.title}</h4>
-                          <p className="text-[10px] text-neutral-500 font-bold uppercase tracking-widest">{item.desc}</p>
-                       </div>
-                     ))}
-                  </div>
-               </div>
-               <div className="relative aspect-square">
-                  <div className="absolute inset-0 bg-gold/10 rotate-3 transform border border-gold/20" />
-                  <div className="absolute inset-0 bg-neutral-900 flex items-center justify-center border border-neutral-800 p-8">
-                     <Image 
-                      src="/fleet_black_bg.png" 
-                      alt="Fleet Standard" 
-                      width={500}
-                      height={300}
-                      sizes="(max-width: 1024px) 100vw, 50vw"
-                      loading="lazy"
-                      className="object-contain grayscale"
-                    />
-                  </div>
-               </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Final CTA */}
-        <section className="py-16 sm:py-32 bg-black relative flex items-center justify-center overflow-hidden">
-          <div className="max-w-4xl mx-auto text-center relative z-10 px-4 sm:px-6">
-            <h2 className="font-serif text-2xl sm:text-4xl md:text-6xl font-black italic uppercase text-white mb-8 sm:mb-12 leading-tight">
-              Elegance In <span className="text-gold">Motion</span>
-            </h2>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
-              <Link href="/booking" className="w-full sm:w-auto">
-                <Button className="w-full sm:w-auto bg-gold hover:bg-gold-dark text-white rounded-none px-8 sm:px-12 py-6 sm:py-8 text-[10px] sm:text-[12px] font-black uppercase tracking-widest border-b-4 border-gold-dark shadow-gold/20 shadow-2xl flex items-center justify-center gap-3">
-                  <Calendar className="h-5 w-5" />
-                  Book Reservation
-                </Button>
-              </Link>
-              <Link href="/contact" className="w-full sm:w-auto">
-                <Button variant="outline" className="w-full sm:w-auto border-white text-white hover:bg-white hover:text-black rounded-none px-8 sm:px-12 py-6 sm:py-8 text-[10px] sm:text-[12px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-3">
-                  <ArrowRight className="h-5 w-5" />
-                  Contact Concierge
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </section>
       </main>
-
     </div>
   );
 }

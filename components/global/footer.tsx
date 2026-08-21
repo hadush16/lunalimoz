@@ -4,14 +4,11 @@ import * as React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Globe, Mail, MapPin, Phone } from "lucide-react";
-
-import { ThemeToggle } from "@/components/theme-toggle";
+import { Mail, MapPin, Phone } from "lucide-react";
 
 export function Footer() {
   const pathname = usePathname();
 
-  // Do not render the public footer on admin routes
   if (pathname?.startsWith("/admin")) {
     return null;
   }
@@ -26,29 +23,36 @@ export function Footer() {
   ];
 
   return (
-    <footer className="bg-slate-100 dark:bg-black border-t border-slate-200 dark:border-neutral-900 py-12 sm:py-16 px-4 sm:px-6 transition-colors">
-      <div className="max-w-7xl mx-auto text-center space-y-8 sm:space-y-10">
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 mb-4 sm:mb-8">
-          <Link href="/">
-            <Image 
-              src="/luna-logo.png" 
-              alt="Luna Limo" 
-              width={180}
-              height={64}
-              style={{ height: 'auto', width: 'auto' }}
-              className="h-12 sm:h-16 w-auto grayscale transition-all hover:grayscale-0 duration-500" 
-            />
+    <footer className="bg-slate-100 dark:bg-black border-t border-slate-200 dark:border-neutral-900 py-16 px-4 sm:px-6 transition-colors">
+      <div className="max-w-7xl mx-auto text-center space-y-8">
+        
+        {/* Brand Circular Logo Header */}
+        <div className="flex justify-center mb-6">
+          <Link href="/" className="group flex items-center gap-3">
+            <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-amber-500/40 bg-neutral-900 flex items-center justify-center shadow-md shrink-0 group-hover:border-gold transition-all duration-300">
+              <Image 
+                src="/luna-logo.png" 
+                alt="Luna Limo" 
+                width={48}
+                height={48}
+                style={{ height: 'auto', width: 'auto' }}
+                className="w-full h-full object-cover p-1 transition-transform duration-500 group-hover:scale-110" 
+              />
+            </div>
+            <span className="font-serif text-xl font-black italic uppercase tracking-wider text-slate-900 dark:text-white">
+              LUNA <span className="text-amber-600 dark:text-gold">LIMO</span>
+            </span>
           </Link>
-          <ThemeToggle />
         </div>
         
-        <nav className="flex flex-wrap justify-center gap-x-8 sm:gap-x-12 gap-y-3 sm:gap-y-4 text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-neutral-500">
+        {/* Navigation Links */}
+        <nav className="flex flex-wrap justify-center gap-x-10 gap-y-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 dark:text-neutral-400">
           {navItems.map((item) => (
             <Link 
               key={item.href} 
               href={item.href} 
-              className={`hover:text-gold transition-colors ${
-                pathname === item.href ? "text-slate-900 dark:text-white" : ""
+              className={`hover:text-amber-600 dark:hover:text-gold transition-colors ${
+                pathname === item.href ? "text-slate-900 dark:text-white font-bold" : ""
               }`}
             >
               {item.name}
@@ -56,18 +60,20 @@ export function Footer() {
           ))}
         </nav>
 
-        <div className="flex justify-center gap-6 sm:gap-8 text-slate-500 dark:text-neutral-600">
-           <Link href="tel:+12063274411" className="hover:text-gold transition-colors"><Phone className="h-4 w-4" /></Link>
-           <Link href="mailto:info@lunalimoz.com" className="hover:text-gold transition-colors"><Mail className="h-4 w-4" /></Link>
-           <Link href="https://maps.google.com" target="_blank" className="hover:text-gold transition-colors"><MapPin className="h-4 w-4" /></Link>
+        {/* Social & Contact Icons */}
+        <div className="flex justify-center gap-6 text-slate-500 dark:text-neutral-500">
+           <Link href="tel:+12063274411" className="p-2.5 rounded-full border border-slate-300 dark:border-neutral-800 hover:text-amber-600 dark:hover:text-gold hover:border-amber-500 transition-colors"><Phone className="h-4 w-4" /></Link>
+           <Link href="mailto:info@lunalimoz.com" className="p-2.5 rounded-full border border-slate-300 dark:border-neutral-800 hover:text-amber-600 dark:hover:text-gold hover:border-amber-500 transition-colors"><Mail className="h-4 w-4" /></Link>
+           <Link href="https://maps.google.com" target="_blank" className="p-2.5 rounded-full border border-slate-300 dark:border-neutral-800 hover:text-amber-600 dark:hover:text-gold hover:border-amber-500 transition-colors"><MapPin className="h-4 w-4" /></Link>
         </div>
 
-        <div className="pt-6 sm:pt-8 border-t border-slate-200 dark:border-neutral-900 max-w-xl mx-auto">
-          <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em] sm:tracking-[0.3em] text-slate-500 dark:text-neutral-600 mb-3 px-4">
-            Luna Limo Professional Chauffeur Services. Seattle, WA.
+        {/* Copyright Footer Notice */}
+        <div className="pt-8 border-t border-slate-200 dark:border-neutral-900 max-w-xl mx-auto space-y-2">
+          <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-slate-500 dark:text-neutral-500 px-4">
+            Luna Limo Executive Chauffeur Services. Seattle, WA.
           </p>
-          <p className="text-[8px] font-bold uppercase tracking-[0.2em] sm:tracking-[0.3em] text-slate-400 dark:text-neutral-800">
-            Copyright © 2026 Luna Limo. Established February 20, 2023.
+          <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-neutral-600">
+            Copyright © 2026 Luna Limo. All rights reserved.
           </p>
         </div>
       </div>
