@@ -4,9 +4,10 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useParams, useSearchParams } from "next/navigation";
 import { ReviewForm } from "@/components/ReviewForm";
-import { ShieldCheck, Calendar, Car, MapPin, CheckCircle2 } from "lucide-react";
+import { ShieldCheck, Calendar, Car, CheckCircle2 } from "lucide-react";
 import { Id } from "@/convex/_generated/dataModel";
 import * as React from "react";
+import Link from "next/link";
 
 export default function RateRidePage() {
   const params = useParams();
@@ -22,7 +23,7 @@ export default function RateRidePage() {
 
   if (validation === undefined) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center transition-colors">
         <div className="text-gold text-[10px] font-black uppercase tracking-[0.3em] animate-pulse">
           Validating Security Token...
         </div>
@@ -32,13 +33,13 @@ export default function RateRidePage() {
 
   if (!validation.isValid) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center p-6 text-center">
-        <div className="max-w-md space-y-4">
-          <div className="inline-block p-4 rounded-full bg-red-950/30 border border-red-900/50 mb-4">
-            <ShieldCheck className="h-8 w-8 text-red-500" />
+      <div className="min-h-screen bg-background flex items-center justify-center p-6 text-center transition-colors">
+        <div className="max-w-md space-y-4 bg-card border border-border p-8 shadow-xl">
+          <div className="inline-block p-4 rounded-full bg-destructive/10 border border-destructive/30 mb-2">
+            <ShieldCheck className="h-8 w-8 text-destructive" />
           </div>
-          <h1 className="font-serif text-3xl font-black italic uppercase text-white">Invalid Link</h1>
-          <p className="text-neutral-500 text-xs font-medium">
+          <h1 className="font-serif text-2xl sm:text-3xl font-black italic uppercase text-foreground">Invalid Link</h1>
+          <p className="text-muted-foreground text-xs font-medium leading-relaxed">
             This review link is either incorrect or expired. Please check your invitation or contact support if you believe this is an error.
           </p>
         </div>
@@ -48,24 +49,24 @@ export default function RateRidePage() {
 
   if (isSuccess || validation.hasReviewed) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center p-6 text-center">
-        <div className="max-w-md space-y-6">
-          <div className="inline-block p-4 rounded-full bg-gold/10 border border-gold/30 mb-4 animate-bounce">
+      <div className="min-h-screen bg-background flex items-center justify-center p-6 text-center transition-colors">
+        <div className="max-w-md space-y-6 bg-card border border-border p-8 sm:p-10 shadow-2xl">
+          <div className="inline-block p-4 rounded-full bg-gold/10 border border-gold/30 mb-2 animate-bounce">
             <CheckCircle2 className="h-10 w-10 text-gold" />
           </div>
-          <h1 className="font-serif text-4xl font-black italic uppercase text-white tracking-tight">
+          <h1 className="font-serif text-3xl sm:text-4xl font-black italic uppercase text-foreground tracking-tight">
             Review <span className="text-gold">Received</span>
           </h1>
-          <p className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.2em] max-w-xs mx-auto">
+          <p className="text-muted-foreground text-[10px] font-black uppercase tracking-[0.2em] max-w-xs mx-auto">
             Your feedback has been committed to our archives. Thank you for choosing Luna Limo.
           </p>
-          <div className="pt-8">
-            <a 
-              href="https://lunalimoz.com" 
+          <div className="pt-4">
+            <Link 
+              href="/" 
               className="text-gold text-[10px] font-black uppercase tracking-[0.4em] border-b border-gold/30 pb-2 hover:border-gold transition-colors"
             >
               Return Home
-            </a>
+            </Link>
           </div>
         </div>
       </div>
@@ -88,39 +89,38 @@ export default function RateRidePage() {
   };
 
   return (
-    <main className="min-h-screen bg-black text-white selection:bg-gold/30">
-      <div className="max-w-3xl mx-auto px-6 py-20 sm:py-32">
-        <header className="mb-16 space-y-6 text-center sm:text-left">
-          <div className="inline-flex items-center gap-2 px-3 py-1 border border-gold/20 bg-gold/5 rounded-full">
+    <main className="min-h-screen bg-background text-foreground transition-colors py-16 sm:py-24">
+      <div className="max-w-3xl mx-auto px-6">
+        <header className="mb-12 space-y-6 text-center sm:text-left">
+          <div className="inline-flex items-center gap-2 px-3 py-1 border border-gold/30 bg-gold/10 rounded-full">
             <div className="h-1.5 w-1.5 rounded-full bg-gold animate-pulse" />
             <span className="text-gold text-[8px] font-black uppercase tracking-widest italic">Service Feedback</span>
           </div>
           
-          <h1 className="font-serif text-4xl sm:text-6xl font-black italic uppercase tracking-tighter leading-tight">
+          <h1 className="font-serif text-4xl sm:text-5xl font-black italic uppercase tracking-tight leading-tight text-foreground">
             How was your <br />
             <span className="text-gold">Journey?</span>
           </h1>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
-             <div className="flex items-center gap-3 p-4 bg-neutral-900/50 border border-neutral-800">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+             <div className="flex items-center gap-3 p-4 bg-card border border-border shadow-sm">
                <Calendar className="h-4 w-4 text-gold" />
                <div className="text-left">
-                 <p className="text-neutral-500 text-[8px] font-black uppercase tracking-widest">Date</p>
-                 <p className="text-[10px] font-bold uppercase">{validation.ride?.pickupDate}</p>
+                 <p className="text-muted-foreground text-[8px] font-black uppercase tracking-widest">Date</p>
+                 <p className="text-xs font-bold uppercase text-foreground">{validation.ride?.pickupDate}</p>
                </div>
              </div>
-             <div className="flex items-center gap-3 p-4 bg-neutral-900/50 border border-neutral-800">
+             <div className="flex items-center gap-3 p-4 bg-card border border-border shadow-sm">
                <Car className="h-4 w-4 text-gold" />
                <div className="text-left">
-                 <p className="text-neutral-500 text-[8px] font-black uppercase tracking-widest">Vehicle Class</p>
-                 <p className="text-[10px] font-bold uppercase">{validation.ride?.carTypeName}</p>
+                 <p className="text-muted-foreground text-[8px] font-black uppercase tracking-widest">Vehicle Class</p>
+                 <p className="text-xs font-bold uppercase text-foreground">{validation.ride?.carTypeName}</p>
                </div>
              </div>
           </div>
         </header>
 
-        <section className="bg-neutral-900/30 border border-neutral-800 p-8 sm:p-12 relative overflow-hidden group">
-           <div className="absolute -right-20 -top-20 h-64 w-64 bg-gold/5 blur-[100px] rounded-full group-hover:bg-gold/10 transition-colors duration-1000" />
+        <section className="bg-card border border-border p-8 sm:p-12 relative overflow-hidden shadow-xl">
            <ReviewForm onSubmit={handleReviewSubmit} />
         </section>
       </div>

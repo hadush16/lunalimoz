@@ -1,10 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CalendarDays, MapPin, Search, Download, MessageSquare, ChevronRight, CheckCircle, XCircle, ShieldCheck, Eye, X, Plane, User, Phone, Mail } from "lucide-react";
+import { CalendarDays, MapPin, Search, Download, Eye, X, Plane, User, Phone, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { formatTime } from "@/lib/utils";
 
 interface BookingRecord {
   id: string;
@@ -114,26 +112,26 @@ export default function AdminBookingsPage() {
   };
 
   return (
-    <div className="p-4 sm:p-8 md:p-12 space-y-8 pb-24">
+    <div className="p-4 sm:p-8 md:p-12 space-y-8 pb-24 bg-background text-foreground transition-colors duration-200">
       <header className="space-y-4">
-        <h1 className="font-serif text-3xl md:text-5xl font-black italic uppercase text-slate-900 dark:text-white tracking-tight">
-          Reservation <span className="text-amber-600 dark:text-gold">Management</span>
+        <h1 className="font-serif text-3xl md:text-5xl font-black italic uppercase text-foreground tracking-tight">
+          Reservation <span className="text-gold">Management</span>
         </h1>
-        <p className="text-slate-500 dark:text-neutral-500 text-[10px] font-black uppercase tracking-[0.2em]">
+        <p className="text-muted-foreground text-[10px] font-black uppercase tracking-[0.2em]">
           Review, approve, and manage executive journeys
         </p>
       </header>
 
       {/* Search & Filter Bar */}
-      <div className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 p-4 flex flex-col sm:flex-row gap-4 justify-between shadow-sm">
+      <div className="bg-card border border-border p-4 flex flex-col sm:flex-row gap-4 justify-between shadow-sm">
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-neutral-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input 
             type="text" 
             placeholder="Search by customer name, email or reference..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-50 dark:bg-black border border-slate-200 dark:border-neutral-800 pl-10 pr-4 py-3 text-xs text-slate-900 dark:text-white focus:border-amber-500 dark:focus:border-gold outline-none"
+            className="w-full bg-secondary border border-border pl-10 pr-4 py-3 text-xs text-foreground focus:border-gold outline-none"
           />
         </div>
         
@@ -141,7 +139,7 @@ export default function AdminBookingsPage() {
           <select 
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-slate-50 dark:bg-black border border-slate-200 dark:border-neutral-800 px-4 py-3 text-xs text-slate-900 dark:text-white uppercase tracking-widest font-bold focus:border-amber-500 dark:focus:border-gold outline-none"
+            className="bg-secondary border border-border px-4 py-3 text-xs text-foreground uppercase tracking-widest font-bold focus:border-gold outline-none"
           >
             <option value="all">ALL STATUSES</option>
             <option value="pending_approval">PENDING APPROVAL</option>
@@ -149,69 +147,69 @@ export default function AdminBookingsPage() {
             <option value="confirmed">CONFIRMED & PAID</option>
             <option value="cancelled">CANCELLED</option>
           </select>
-          <Button onClick={handleExportCSV} variant="outline" size="sm" className="bg-black border-neutral-800 text-neutral-400 hover:text-white rounded-none text-[9px] uppercase tracking-widest px-4">
+          <Button onClick={handleExportCSV} variant="outline" size="sm" className="bg-secondary border-border text-foreground hover:bg-secondary/80 rounded-none text-[9px] uppercase tracking-widest px-4">
             <Download className="h-3 w-3 mr-2" /> Export
           </Button>
         </div>
       </div>
 
       {/* Bookings Table */}
-      <section className="bg-neutral-900 border border-neutral-800">
-        <div className="p-6 border-b border-neutral-800 flex items-center justify-between">
+      <section className="bg-card border border-border shadow-sm">
+        <div className="p-6 border-b border-border flex items-center justify-between">
             <h2 className="text-gold text-[10px] font-black uppercase tracking-[0.3em] flex items-center gap-2">
                <CalendarDays className="h-4 w-4" /> 
                Active Reservations ({filteredBookings.length})
             </h2>
         </div>
 
-        <div className="divide-y divide-neutral-800">
+        <div className="divide-y divide-border">
           {filteredBookings.length === 0 ? (
-             <div className="p-12 text-center text-neutral-500 text-[10px] font-black uppercase tracking-[0.3em]">
+             <div className="p-12 text-center text-muted-foreground text-[10px] font-black uppercase tracking-[0.3em]">
                No matching reservations found
              </div>
           ) : (
              filteredBookings.map((ride) => (
-              <div key={ride.id} className="p-4 md:p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-6 hover:bg-neutral-800/20 transition-colors">
+              <div key={ride.id} className="p-4 md:p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-6 hover:bg-secondary/40 transition-colors">
                 
                 {/* Information Column */}
                 <div className="space-y-3 flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-3">
                       <span className={`px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.2em] whitespace-nowrap ${
-                        ride.status === "pending_approval" ? "bg-amber-950 text-amber-400 border border-amber-800" 
-                        : ride.status === "approved" ? "bg-emerald-950 text-emerald-400 border border-emerald-800"
-                        : ride.status === "confirmed" ? "bg-blue-950 text-blue-400 border border-blue-800" 
-                        : "bg-red-950 text-red-400 border border-red-800"
+                        ride.status === "pending_approval" ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30" 
+                        : ride.status === "approved" ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30"
+                        : ride.status === "confirmed" ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/30" 
+                        : "bg-destructive/10 text-destructive border border-destructive/30"
                       }`}>
                        {ride.status.replace("_", " ")}
                      </span>
 
                      <span className="text-gold font-serif text-sm font-black italic">{ride.id}</span>
-                     <p className="text-white font-bold text-xs">{ride.customerName}</p>
+                     <p className="text-foreground font-bold text-xs">{ride.customerName}</p>
                      {ride.flightDetails && (
-                       <span className="text-[9px] bg-neutral-800 text-neutral-300 px-2 py-0.5 font-bold flex items-center gap-1">
+                       <span className="text-[9px] bg-secondary text-foreground px-2 py-0.5 font-bold flex items-center gap-1 border border-border">
                          <Plane className="h-3 w-3 text-gold" /> {ride.flightDetails}
                        </span>
                      )}
                   </div>
                   
                   <div className="grid md:grid-cols-2 gap-3 text-xs">
-                    <div className="bg-black p-3 border border-neutral-800 space-y-1">
-                      <p className="text-neutral-400 text-[11px] font-bold truncate">
+                    <div className="bg-secondary/50 p-3 border border-border space-y-1">
+                      <p className="text-foreground text-[11px] font-bold truncate">
                         <MapPin className="h-3 w-3 text-gold inline mr-1" />
                         {ride.pickupAddress}
                       </p>
-                      <p className="text-neutral-500 text-[11px] font-bold truncate pl-4">
+                      <p className="text-muted-foreground text-[11px] font-bold truncate pl-4">
                         To {ride.destinationAddress}
                       </p>
                     </div>
 
-                    <div className="bg-black p-3 border border-neutral-800 space-y-1">
+                    <div className="bg-secondary/50 p-3 border border-border space-y-1">
                       <div className="flex justify-between">
-                        <span className="text-neutral-500 text-[9px] uppercase font-bold">Schedule:</span>
-                        <span className="text-white text-[11px] font-bold">{ride.pickupDate} at {ride.pickupTime}</span>
+                        <span className="text-muted-foreground text-[9px] uppercase font-bold">Schedule:</span>
+                        <span className="text-foreground text-[11px] font-bold">{ride.pickupDate} at {ride.pickupTime}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-neutral-500 text-[9px] uppercase font-bold">Class:</span>
+                        <span className="text-muted-foreground text-[9px] uppercase font-bold">Class:</span>
                         <span className="text-gold text-[11px] font-bold italic">{ride.carTypeName}</span>
                       </div>
                     </div>
@@ -219,10 +217,10 @@ export default function AdminBookingsPage() {
                 </div>
 
                 {/* Actions & Price Column */}
-                <div className="flex flex-col sm:flex-row lg:flex-col items-start lg:items-end justify-between gap-4 lg:w-44 shrink-0 border-t lg:border-t-0 pt-4 lg:pt-0 border-neutral-800">
+                <div className="flex flex-col sm:flex-row lg:flex-col items-start lg:items-end justify-between gap-4 lg:w-44 shrink-0 border-t lg:border-t-0 pt-4 lg:pt-0 border-border">
                   <div className="text-left lg:text-right">
                     <p className="text-gold font-serif text-xl font-black italic">${ride.price.toFixed(2)}</p>
-                    <p className="text-[9px] font-bold text-neutral-500 uppercase tracking-widest">
+                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
                       {ride.paymentStatus === "paid" ? "PAID" : "UNPAID"}
                     </p>
                   </div>
@@ -243,7 +241,7 @@ export default function AdminBookingsPage() {
                         onClick={() => handleStatusChange(ride.id, "cancelled")}
                         disabled={isUpdating === ride.id}
                         variant="outline"
-                        className="flex-1 bg-red-950/40 text-red-400 border border-red-900 hover:bg-red-900 rounded-none text-[9px] font-black uppercase tracking-widest h-8"
+                        className="flex-1 bg-destructive/10 text-destructive border border-destructive/30 hover:bg-destructive/20 rounded-none text-[9px] font-black uppercase tracking-widest h-8"
                       >
                         Reject
                       </Button>
@@ -252,7 +250,7 @@ export default function AdminBookingsPage() {
                     <Button
                       onClick={() => setSelectedBooking(ride)}
                       variant="outline"
-                      className="bg-black border-neutral-700 text-white hover:border-gold rounded-none text-[9px] font-black uppercase tracking-widest h-8 px-3"
+                      className="bg-secondary border-border text-foreground hover:border-gold rounded-none text-[9px] font-black uppercase tracking-widest h-8 px-3"
                     >
                       <Eye className="h-3.5 w-3.5" />
                     </Button>
@@ -268,42 +266,42 @@ export default function AdminBookingsPage() {
       {/* Details Modal */}
       {selectedBooking && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-neutral-900 border border-neutral-800 w-full max-w-2xl p-6 sm:p-8 space-y-6 relative shadow-2xl animate-fade-in">
+          <div className="bg-card border border-border w-full max-w-2xl p-6 sm:p-8 space-y-6 relative shadow-2xl animate-fade-in">
             <button 
               onClick={() => setSelectedBooking(null)}
-              className="absolute right-4 top-4 text-neutral-500 hover:text-white"
+              className="absolute right-4 top-4 text-muted-foreground hover:text-foreground"
             >
               <X className="h-5 w-5" />
             </button>
 
             <div className="space-y-1">
               <span className="text-gold text-[10px] font-black uppercase tracking-[0.2em]">Reservation Spec</span>
-              <h3 className="font-serif text-2xl font-black italic uppercase text-white">{selectedBooking.id}</h3>
+              <h3 className="font-serif text-2xl font-black italic uppercase text-foreground">{selectedBooking.id}</h3>
             </div>
 
             <div className="grid sm:grid-cols-2 gap-4 text-xs">
-              <div className="bg-black p-4 border border-neutral-800 space-y-2">
+              <div className="bg-secondary/50 p-4 border border-border space-y-2">
                 <p className="text-gold font-bold uppercase text-[9px] tracking-widest">Passenger Info</p>
-                <p className="font-bold text-white flex items-center gap-2"><User className="h-3.5 w-3.5 text-neutral-500" /> {selectedBooking.customerName}</p>
-                <p className="text-neutral-400 flex items-center gap-2"><Mail className="h-3.5 w-3.5 text-neutral-500" /> {selectedBooking.customerEmail}</p>
-                <p className="text-neutral-400 flex items-center gap-2"><Phone className="h-3.5 w-3.5 text-neutral-500" /> {selectedBooking.customerPhone}</p>
+                <p className="font-bold text-foreground flex items-center gap-2"><User className="h-3.5 w-3.5 text-muted-foreground" /> {selectedBooking.customerName}</p>
+                <p className="text-muted-foreground flex items-center gap-2"><Mail className="h-3.5 w-3.5 text-muted-foreground" /> {selectedBooking.customerEmail}</p>
+                <p className="text-muted-foreground flex items-center gap-2"><Phone className="h-3.5 w-3.5 text-muted-foreground" /> {selectedBooking.customerPhone}</p>
                 {selectedBooking.flightDetails && (
-                  <p className="text-gold font-bold flex items-center gap-2 pt-2 border-t border-neutral-800"><Plane className="h-3.5 w-3.5" /> Flight: {selectedBooking.flightDetails}</p>
+                  <p className="text-gold font-bold flex items-center gap-2 pt-2 border-t border-border"><Plane className="h-3.5 w-3.5" /> Flight: {selectedBooking.flightDetails}</p>
                 )}
               </div>
 
-              <div className="bg-black p-4 border border-neutral-800 space-y-2">
+              <div className="bg-secondary/50 p-4 border border-border space-y-2">
                 <p className="text-gold font-bold uppercase text-[9px] tracking-widest">Journey Info</p>
-                <p className="text-neutral-400"><span className="text-neutral-600 font-bold uppercase text-[9px]">Pickup:</span> {selectedBooking.pickupAddress}</p>
-                <p className="text-neutral-400"><span className="text-neutral-600 font-bold uppercase text-[9px]">Drop-off:</span> {selectedBooking.destinationAddress}</p>
-                <p className="text-white font-bold pt-2 border-t border-neutral-800">{selectedBooking.pickupDate} at {selectedBooking.pickupTime}</p>
+                <p className="text-muted-foreground"><span className="text-muted-foreground/80 font-bold uppercase text-[9px]">Pickup:</span> {selectedBooking.pickupAddress}</p>
+                <p className="text-muted-foreground"><span className="text-muted-foreground/80 font-bold uppercase text-[9px]">Drop-off:</span> {selectedBooking.destinationAddress}</p>
+                <p className="text-foreground font-bold pt-2 border-t border-border">{selectedBooking.pickupDate} at {selectedBooking.pickupTime}</p>
                 <p className="text-gold font-bold italic">{selectedBooking.carTypeName} ({selectedBooking.passengers} Pax / {selectedBooking.luggage} Luggage)</p>
               </div>
             </div>
 
-            <div className="flex justify-between items-center bg-black p-4 border border-neutral-800">
+            <div className="flex justify-between items-center bg-secondary/50 p-4 border border-border">
               <div>
-                <p className="text-neutral-500 text-[9px] uppercase font-bold">Total Fare</p>
+                <p className="text-muted-foreground text-[9px] uppercase font-bold">Total Fare</p>
                 <p className="font-serif text-2xl font-black italic text-gold">${selectedBooking.price.toFixed(2)}</p>
               </div>
               <div className="flex gap-2">
@@ -315,7 +313,7 @@ export default function AdminBookingsPage() {
                     Approve Reservation
                   </Button>
                 )}
-                <Button onClick={() => setSelectedBooking(null)} className="bg-gold text-white text-xs font-bold uppercase">
+                <Button onClick={() => setSelectedBooking(null)} className="bg-gold hover:bg-gold-dark text-primary-foreground text-xs font-bold uppercase">
                   Close
                 </Button>
               </div>

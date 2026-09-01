@@ -62,26 +62,26 @@ export default function AdminContactPage() {
   };
 
   return (
-    <div className="p-4 sm:p-8 md:p-12 space-y-8 sm:space-y-12 pb-24 relative">
+    <div className="p-4 sm:p-8 md:p-12 space-y-8 sm:space-y-12 pb-24 relative bg-background text-foreground transition-colors duration-200">
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-2 sm:space-y-4 text-center md:text-left">
-          <h1 className="font-serif text-3xl sm:text-5xl font-black italic uppercase text-white tracking-tight">
+          <h1 className="font-serif text-3xl sm:text-5xl font-black italic uppercase text-foreground tracking-tight">
             Contact <span className="text-gold">Inquiries</span>
           </h1>
-          <p className="text-neutral-500 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em]">
+          <p className="text-muted-foreground text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em]">
             {unreadCount ? `${unreadCount} unread` : "All caught up"}
           </p>
         </div>
         <div className="flex items-center gap-3 w-full md:w-auto">
-          <div className="flex bg-neutral-900 border border-neutral-800">
+          <div className="flex bg-secondary border border-border">
             {(["all", "unread", "read"] as FilterMode[]).map((mode) => (
               <button
                 key={mode}
                 onClick={() => setFilter(mode)}
                 className={`px-4 py-3 text-[9px] font-black uppercase tracking-widest transition-colors ${
                   filter === mode
-                    ? "bg-gold text-white"
-                    : "text-neutral-500 hover:text-white"
+                    ? "bg-gold text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 {mode}
@@ -91,7 +91,7 @@ export default function AdminContactPage() {
           {unreadCount ? (
             <Button
               onClick={handleMarkAllAsRead}
-              className="bg-transparent border border-gold/30 text-gold hover:bg-gold hover:text-white rounded-none py-5 px-6 text-[9px] font-black uppercase tracking-widest flex items-center gap-2"
+              className="bg-transparent border border-gold/30 text-gold hover:bg-gold hover:text-primary-foreground rounded-none py-5 px-6 text-[9px] font-black uppercase tracking-widest flex items-center gap-2"
             >
               <CheckCheck className="h-3 w-3" />
               Mark All Read
@@ -103,9 +103,9 @@ export default function AdminContactPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1 space-y-3">
           {inquiries.length === 0 ? (
-            <div className="text-center py-20 border border-neutral-800 bg-neutral-900/30">
-              <Mail className="h-8 w-8 text-neutral-700 mx-auto mb-4" />
-              <p className="text-[10px] font-black uppercase tracking-widest text-neutral-500">No inquiries found</p>
+            <div className="text-center py-20 border border-border bg-card">
+              <Mail className="h-8 w-8 text-muted-foreground mx-auto mb-4" />
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">No inquiries found</p>
             </div>
           ) : (
             inquiries.map((inquiry: any) => (
@@ -114,21 +114,21 @@ export default function AdminContactPage() {
                 onClick={() => setSelectedInquiry(inquiry)}
                 className={`w-full text-left p-4 border transition-all ${
                   selectedInquiry?._id === inquiry._id
-                    ? "bg-neutral-900 border-l-4 border-l-gold border-neutral-700"
-                    : "bg-neutral-900/50 border-neutral-800 hover:border-gold/30"
+                    ? "bg-card border-l-4 border-l-gold border-border shadow-md"
+                    : "bg-secondary/50 border-border hover:border-gold/40"
                 }`}
               >
                 <div className="flex justify-between items-start mb-2">
-                  <h3 className={`text-sm font-bold truncate flex-1 ${inquiry.isRead ? "text-neutral-400" : "text-white"}`}>
+                  <h3 className={`text-sm font-bold truncate flex-1 ${inquiry.isRead ? "text-muted-foreground" : "text-foreground"}`}>
                     {inquiry.name}
                   </h3>
                   {!inquiry.isRead && (
-                    <div className="w-2 h-2 rounded-full bg-gold flex-shrink-0 ml-2 mt-1" />
+                    <div className="w-2 h-2 rounded-full bg-gold flex-shrink-0 ml-2 mt-1 shadow-[0_0_6px_var(--gold)]" />
                   )}
                 </div>
                 <p className="text-[10px] text-gold font-black uppercase tracking-widest truncate">{inquiry.subject}</p>
-                <p className="text-[10px] text-neutral-600 mt-1 truncate">{inquiry.message}</p>
-                <p className="text-[8px] text-neutral-700 mt-2 uppercase tracking-widest">
+                <p className="text-[10px] text-muted-foreground mt-1 truncate">{inquiry.message}</p>
+                <p className="text-[8px] text-muted-foreground/80 mt-2 uppercase tracking-widest">
                   {new Date(inquiry.createdAt).toLocaleString()}
                 </p>
               </button>
@@ -138,11 +138,11 @@ export default function AdminContactPage() {
 
         <div className="lg:col-span-2">
           {selectedInquiry ? (
-            <div className="bg-neutral-900/50 border border-neutral-800 p-6 sm:p-8 space-y-6">
+            <div className="bg-card border border-border p-6 sm:p-8 space-y-6 shadow-sm">
               <div className="flex justify-between items-start">
                 <div>
-                  <h2 className="font-serif text-2xl font-black italic uppercase text-white">{selectedInquiry.subject}</h2>
-                  <p className="text-neutral-500 text-[10px] font-black uppercase tracking-widest mt-2">
+                  <h2 className="font-serif text-2xl font-black italic uppercase text-foreground">{selectedInquiry.subject}</h2>
+                  <p className="text-muted-foreground text-[10px] font-black uppercase tracking-widest mt-2">
                     From: {selectedInquiry.name} ({selectedInquiry.email})
                   </p>
                 </div>
@@ -152,7 +152,7 @@ export default function AdminContactPage() {
                       onClick={() => handleMarkAsRead(selectedInquiry._id)}
                       variant="outline"
                       size="sm"
-                      className="bg-transparent text-gold border-gold/30 hover:bg-gold hover:text-white rounded-none text-[9px] font-black uppercase tracking-widest flex items-center gap-2"
+                      className="bg-transparent text-gold border-gold/30 hover:bg-gold hover:text-primary-foreground rounded-none text-[9px] font-black uppercase tracking-widest flex items-center gap-2"
                     >
                       <Eye className="h-3 w-3" />
                       Mark Read
@@ -162,7 +162,7 @@ export default function AdminContactPage() {
                     onClick={() => handleDelete(selectedInquiry._id)}
                     variant="outline"
                     size="sm"
-                    className="bg-transparent text-red-500 border-red-900/50 hover:bg-red-900 hover:text-white rounded-none text-[9px] font-black uppercase tracking-widest flex items-center gap-2"
+                    className="bg-transparent text-destructive border-destructive/30 hover:bg-destructive/10 rounded-none text-[9px] font-black uppercase tracking-widest flex items-center gap-2"
                   >
                     <Trash2 className="h-3 w-3" />
                     Delete
@@ -170,17 +170,17 @@ export default function AdminContactPage() {
                 </div>
               </div>
 
-              <div className="border-t border-neutral-800 pt-6">
-                <p className="text-sm text-neutral-300 whitespace-pre-wrap leading-relaxed">{selectedInquiry.message}</p>
+              <div className="border-t border-border pt-6">
+                <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{selectedInquiry.message}</p>
               </div>
 
-              <div className="border-t border-neutral-800 pt-4 flex justify-between items-center">
-                <p className="text-[10px] text-neutral-600 uppercase tracking-widest">
+              <div className="border-t border-border pt-4 flex justify-between items-center">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-widest">
                   Received: {new Date(selectedInquiry.createdAt).toLocaleString()}
                 </p>
                 <span className={`px-3 py-1 text-[8px] font-black uppercase tracking-widest border ${
                   selectedInquiry.isRead
-                    ? "bg-neutral-800/30 text-neutral-500 border-neutral-700"
+                    ? "bg-secondary text-muted-foreground border-border"
                     : "bg-gold/10 text-gold border-gold/30"
                 }`}>
                   {selectedInquiry.isRead ? "Read" : "Unread"}
@@ -188,10 +188,10 @@ export default function AdminContactPage() {
               </div>
             </div>
           ) : (
-            <div className="h-full flex items-center justify-center border border-neutral-800 bg-neutral-900/30 min-h-[400px]">
+            <div className="h-full flex items-center justify-center border border-border bg-card min-h-[400px]">
               <div className="text-center space-y-4">
-                <Mail className="h-12 w-12 text-neutral-700 mx-auto" />
-                <p className="text-[10px] font-black uppercase tracking-widest text-neutral-500">Select an inquiry to view details</p>
+                <Mail className="h-12 w-12 text-muted-foreground/40 mx-auto" />
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Select an inquiry to view details</p>
               </div>
             </div>
           )}

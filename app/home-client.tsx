@@ -2,30 +2,66 @@
 
 import * as React from "react";
 import Link from "next/link";
+import NextImage from "next/image";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import {
-  Phone,
-  Mail,
-  MapPin,
-  Shield,
-  Calendar,
-  ChevronRight,
-  Star,
-  Globe,
-  ArrowRight,
-  CheckCircle,
-  Briefcase,
-  Compass,
-  Trophy,
-  Quote,
-  Zap,
-  Car,
-  Clock
-} from "lucide-react";
-import NextImage from "next/image";
 import { LocationInput } from "@/components/booking/location-input";
 import { SearchResult } from "@/lib/tomtom/search";
+import { 
+  ShieldCheck, 
+  Clock, 
+  Plane, 
+  Sparkles, 
+  ArrowRight, 
+  Car, 
+  Users, 
+  Luggage, 
+  Briefcase, 
+  Star,
+  ChevronRight,
+  ChevronLeft,
+  Globe,
+  Trophy,
+  Compass,
+  Phone,
+  Calendar
+} from "lucide-react";
+import { AnimatedSection, AnimatedStaggerContainer, AnimatedStaggerItem } from "@/components/ui/animated-section";
+
+const fleetPreview = [
+  {
+    name: "Cadillac Escalade ESV",
+    category: "Executive SUV",
+    capacity: 6,
+    luggage: 6,
+    image: "/fleet_black_bg.png",
+    desc: "The pinnacle of executive group transportation, offering lavish legroom and unmatched luggage capacity."
+  },
+  {
+    name: "Mercedes-Benz S-Class",
+    category: "First-Class Sedan",
+    capacity: 3,
+    luggage: 3,
+    image: "/fleet_white_bg.png",
+    desc: "Unrivaled acoustic isolation, executive rear seating, and smooth dynamic luxury for business leaders."
+  },
+  {
+    name: "Lincoln Navigator L",
+    category: "Luxury Extended SUV",
+    capacity: 6,
+    luggage: 6,
+    image: "/fleet_black_bg.png",
+    desc: "Refined American prestige with extended cargo space and captain seating for premier event arrivals."
+  },
+  {
+    name: "Mercedes-Benz Sprinter",
+    category: "VIP Chauffeur Coach",
+    capacity: 14,
+    luggage: 14,
+    image: "/fleet_black_bg.png",
+    desc: "Stand-up headroom, custom leather seating, and corporate presentation connectivity for larger delegations."
+  }
+];
 
 export default function HomeClient() {
   const router = useRouter();
@@ -33,8 +69,21 @@ export default function HomeClient() {
     pickup: null as SearchResult | null,
     destination: null as SearchResult | null,
     date: new Date().toISOString().split("T")[0],
-    time: ""
+    time: "12:00",
   });
+
+  const carouselRef = React.useRef<HTMLDivElement>(null);
+
+  const scrollCarousel = (direction: "left" | "right") => {
+    if (carouselRef.current) {
+      const { scrollLeft, clientWidth } = carouselRef.current;
+      const scrollAmount = clientWidth * 0.8;
+      carouselRef.current.scrollTo({
+        left: direction === "left" ? scrollLeft - scrollAmount : scrollLeft + scrollAmount,
+        behavior: "smooth",
+      });
+    }
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,301 +92,468 @@ export default function HomeClient() {
     if (searchData.destination) params.set("d", searchData.destination.address.freeformAddress);
     if (searchData.date) params.set("date", searchData.date);
     if (searchData.time) params.set("time", searchData.time);
+
     router.push(`/booking?${params.toString()}`);
   };
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans overflow-x-hidden w-full">
+    <div className="bg-background text-foreground selection:bg-gold/30 min-h-screen transition-colors duration-200">
       <main>
-        {/* Hero Section */}
-        <section className="relative min-h-[90vh] flex items-center pt-12 sm:pt-20 pb-8 sm:pb-32 px-4 sm:px-6 overflow-hidden text-white">
+        {/* Cinematic Hero Section */}
+        <section className="relative min-h-[90vh] lg:min-h-[88vh] flex items-center pt-10 sm:pt-16 pb-16 sm:pb-24 px-4 sm:px-6 overflow-hidden">
           {/* Background Image Layer */}
           <NextImage
             src="/luxury_hero_bg.png"
-            alt="Luxury chauffeur fleet at night"
+            alt="Luxury chauffeur fleet in Seattle"
             fill
             priority
-            quality={75}
+            quality={80}
             sizes="100vw"
             className="object-cover scale-105 z-0"
           />
-          {/* Sophisticated Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-black/60 z-[1] backdrop-blur-[1px]" />
-          <div className="absolute inset-0 bg-black/40 z-[1]" />
+          {/* Layered Luxury Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/85 to-black/60 z-[1]" />
+          <div className="absolute inset-0 bg-black/30 z-[1]" />
           
-          <div className="max-w-7xl mx-auto relative z-20 flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-20 w-full">
-            {/* Left Column: Text */}
+          <div className="max-w-7xl mx-auto relative z-20 flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-16 w-full">
+            {/* Left Column: Headline & Hero Content */}
             <div className="flex-1 text-center lg:text-left space-y-6 sm:space-y-8">
-              <h1 className="font-serif text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-black italic uppercase text-white leading-[1.1] tracking-tighter">
-                Seattle Limo Service & <br />
-                <span className="text-gold">Luxury Chauffeur</span>
-              </h1>
+              <AnimatedSection variant="fadeUp" delay={0.05}>
+                <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 bg-gold/10 border border-gold/30 rounded-none backdrop-blur-md">
+                  <Sparkles className="h-3.5 w-3.5 text-gold" />
+                  <span className="text-[10px] font-black uppercase tracking-[0.25em] text-gold">
+                    Seattle&apos;s Elite Chauffeur Standard
+                  </span>
+                </div>
+              </AnimatedSection>
 
-              <p className="text-xs sm:text-sm text-neutral-400 max-w-xl mx-auto lg:mx-0 font-medium leading-relaxed uppercase tracking-widest">
-                Luna Limo delivers a bespoke transportation experience tailored for those who demand excellence. 
-                The ultimate in <span className="text-gold">discretion, safety, and sophistication</span>.
-              </p>
+              <AnimatedSection variant="fadeUp" delay={0.15}>
+                <h1 className="font-serif text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-black italic uppercase text-white leading-[1.05] tracking-tight">
+                  Luxury Moves <br />
+                  <span className="text-gradient-gold">With You.</span>
+                </h1>
+              </AnimatedSection>
 
-              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-4">
-                <Link href="tel:+12063274411" className="w-full sm:w-auto">
-                  <Button className="w-full sm:w-auto bg-gold hover:bg-gold-dark text-white rounded-none px-10 py-7 text-[10px] font-black uppercase tracking-[0.3em] shadow-2xl border-b-4 border-gold-dark flex items-center justify-center gap-3 active:scale-95 transition-transform">
-                    <Phone className="h-4 w-4" />
-                    Call +1 (206) 327-4411
-                  </Button>
+              <AnimatedSection variant="fadeUp" delay={0.25}>
+                <p className="text-xs sm:text-sm md:text-base text-neutral-300 max-w-xl mx-auto lg:mx-0 font-medium leading-relaxed uppercase tracking-wider">
+                  Bespoke executive black car transportation tailored around your schedule. Uncompromising discretion, flight tracking, and pristine comfort across Seattle and the Eastside.
+                </p>
+              </AnimatedSection>
+
+              {/* Trust Badges */}
+              <AnimatedSection variant="fadeUp" delay={0.35}>
+                <div className="grid grid-cols-3 gap-3 max-w-lg mx-auto lg:mx-0 pt-2 text-left">
+                  <div className="bg-black/60 border border-white/10 p-3 backdrop-blur-sm">
+                    <Plane className="h-4 w-4 text-gold mb-1" />
+                    <p className="text-[9px] font-black uppercase text-white tracking-wider">Sea-Tac Direct</p>
+                    <p className="text-[8px] text-neutral-400 font-bold uppercase tracking-widest">Flight Monitored</p>
+                  </div>
+                  <div className="bg-black/60 border border-white/10 p-3 backdrop-blur-sm">
+                    <ShieldCheck className="h-4 w-4 text-gold mb-1" />
+                    <p className="text-[9px] font-black uppercase text-white tracking-wider">Top Safety</p>
+                    <p className="text-[8px] text-neutral-400 font-bold uppercase tracking-widest">Vetted Chauffeurs</p>
+                  </div>
+                  <div className="bg-black/60 border border-white/10 p-3 backdrop-blur-sm">
+                    <Clock className="h-4 w-4 text-gold mb-1" />
+                    <p className="text-[9px] font-black uppercase text-white tracking-wider">24/7 Service</p>
+                    <p className="text-[8px] text-neutral-400 font-bold uppercase tracking-widest">Always on time</p>
+                  </div>
+                </div>
+              </AnimatedSection>
+
+              <AnimatedSection variant="fadeUp" delay={0.45}>
+                <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
+                  <Link href="tel:+12063274411" className="w-full sm:w-auto">
+                    <Button className="w-full sm:w-auto bg-gold hover:bg-gold-dark text-primary-foreground rounded-none px-8 py-6 text-xs font-black uppercase tracking-[0.2em] shadow-xl border-b-2 border-gold-dark flex items-center justify-center gap-2 active:scale-95 transition-all">
+                      <Phone className="h-4 w-4" />
+                      Call (206) 327-4411
+                    </Button>
+                  </Link>
+                  <Link href="/fleet" className="w-full sm:w-auto">
+                    <Button variant="outline" className="w-full sm:w-auto border-white/30 text-white hover:bg-white hover:text-black rounded-none px-8 py-6 text-xs font-black uppercase tracking-[0.2em] backdrop-blur-sm transition-all">
+                      Explore Fleet
+                    </Button>
+                  </Link>
+                </div>
+              </AnimatedSection>
+            </div>
+
+            {/* Right Column: Floating Luxury Booking Panel */}
+            <div className="w-full lg:w-[440px]">
+              <AnimatedSection variant="scale" delay={0.2}>
+                <div className="bg-card/95 text-foreground backdrop-blur-xl border border-border p-6 sm:p-8 shadow-2xl relative group">
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-gold via-gold-light to-gold" />
+                  
+                  <div className="flex justify-between items-center mb-6 border-b border-border pb-3">
+                    <h3 className="font-serif text-xl sm:text-2xl font-black italic uppercase text-foreground">
+                      Quick <span className="text-gold">Reservation</span>
+                    </h3>
+                    <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1">
+                      <Star className="h-3 w-3 text-gold fill-gold" /> Instant Rate
+                    </span>
+                  </div>
+
+                  <form onSubmit={handleSearch} className="space-y-4 relative z-10">
+                    <div className="space-y-1.5">
+                      <label htmlFor="pickup-select" className="text-muted-foreground text-[9px] font-black uppercase tracking-[0.2em] ml-1 flex items-center gap-1">
+                        Pickup Location
+                      </label>
+                      <LocationInput 
+                        id="pickup-select"
+                        placeholder="Airport, Hotel, or Address"
+                        value={searchData.pickup}
+                        onChange={(location) => setSearchData({...searchData, pickup: location})}
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label htmlFor="dropoff-select" className="text-muted-foreground text-[9px] font-black uppercase tracking-[0.2em] ml-1 flex items-center gap-1">
+                        Destination
+                      </label>
+                      <LocationInput 
+                        id="dropoff-select"
+                        placeholder="Where would you like to go?"
+                        value={searchData.destination}
+                        onChange={(location) => setSearchData({...searchData, destination: location})}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <label htmlFor="res-date" className="text-muted-foreground text-[9px] font-black uppercase tracking-[0.2em] ml-1">
+                          Date
+                        </label>
+                        <div className="relative">
+                          <input 
+                            id="res-date"
+                            type="date"
+                            className="w-full bg-secondary border border-border text-foreground p-3 text-xs font-bold focus:border-gold outline-none transition-colors"
+                            value={searchData.date}
+                            onChange={(e) => setSearchData({...searchData, date: e.target.value})}
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <label htmlFor="res-time" className="text-muted-foreground text-[9px] font-black uppercase tracking-[0.2em] ml-1">
+                          Time
+                        </label>
+                        <div className="relative">
+                          <input 
+                            id="res-time"
+                            type="time"
+                            className="w-full bg-secondary border border-border text-foreground p-3 text-xs font-bold focus:border-gold outline-none transition-colors"
+                            value={searchData.time}
+                            onChange={(e) => setSearchData({...searchData, time: e.target.value})}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <Button 
+                      type="submit"
+                      className="w-full bg-gold hover:bg-gold-dark text-primary-foreground rounded-none py-6 text-xs font-black uppercase tracking-[0.25em] mt-2 border-b-2 border-gold-dark shadow-lg active:scale-98 transition-all flex items-center justify-center gap-2"
+                    >
+                      <span>Check Availability</span>
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  </form>
+                </div>
+              </AnimatedSection>
+            </div>
+          </div>
+        </section>
+
+        {/* Fleet Showcase Section with Carousel */}
+        <section className="py-20 sm:py-28 px-4 sm:px-6 bg-secondary/40 border-b border-border transition-colors">
+          <div className="max-w-7xl mx-auto space-y-12">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+              <div className="space-y-3">
+                <span className="text-gold text-[10px] font-black uppercase tracking-[0.4em] flex items-center gap-1.5">
+                  <Car className="h-3.5 w-3.5" /> The Luxury Collection
+                </span>
+                <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl font-black italic uppercase text-foreground tracking-tight">
+                  Executive <span className="text-gold">Fleet</span>
+                </h2>
+              </div>
+              
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => scrollCarousel("left")}
+                    className="w-10 h-10 border border-border hover:border-gold flex items-center justify-center text-muted-foreground hover:text-gold transition-colors bg-card shadow-sm"
+                    aria-label="Previous fleet slide"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => scrollCarousel("right")}
+                    className="w-10 h-10 border border-border hover:border-gold flex items-center justify-center text-muted-foreground hover:text-gold transition-colors bg-card shadow-sm"
+                    aria-label="Next fleet slide"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
+                <Link href="/fleet" className="text-xs font-black uppercase tracking-[0.2em] text-gold hover:underline flex items-center gap-1">
+                  All Specs <ChevronRight className="h-4 w-4" />
                 </Link>
               </div>
             </div>
 
-            {/* Right Column: Minimal Search Form */}
-            <div className="w-full lg:w-[450px] animate-in fade-in slide-in-from-right-8 duration-1000">
-              <div className="bg-neutral-900/40 backdrop-blur-xl border border-neutral-800 p-8 sm:p-10 shadow-3xl relative overflow-hidden group">
-                <div className="absolute top-0 left-0 w-full h-1 bg-gold" />
-                <div className="absolute -right-20 -top-20 h-64 w-64 bg-gold/5 blur-[100px] rounded-full group-hover:bg-gold/10 transition-colors" />
-                
-                <h3 className="font-serif text-xl sm:text-2xl font-black italic uppercase text-white mb-8 border-b border-neutral-800 pb-4">
-                  Quick <span className="text-gold">Reservation</span>
-                </h3>
-
-                <form onSubmit={handleSearch} className="space-y-6 relative z-10">
-                  <div className="space-y-2">
-                    <label htmlFor="pickup-select" className="text-neutral-500 text-[9px] font-black uppercase tracking-[0.2em] ml-1">Pickup Location</label>
-                    <LocationInput 
-                      id="pickup-select"
-                      placeholder="Airport, Hotel, or Office"
-                      value={searchData.pickup}
-                      onChange={(location) => setSearchData({...searchData, pickup: location})}
-                      className="bg-black/60 border-neutral-800 text-white font-bold h-12"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label htmlFor="dropoff-select" className="text-neutral-500 text-[9px] font-black uppercase tracking-[0.2em] ml-1">Drop-off Destination</label>
-                    <LocationInput 
-                      id="dropoff-select"
-                      placeholder="Where are you heading?"
-                      value={searchData.destination}
-                      onChange={(location) => setSearchData({...searchData, destination: location})}
-                      className="bg-black/60 border-neutral-800 text-white font-bold h-12"
-                    />
-                  </div>
-
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label htmlFor="res-date" className="text-neutral-500 text-[9px] font-black uppercase tracking-[0.2em] ml-1">Preferred Date</label>
-                      <div className="relative">
-                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gold/50" />
-                        <input 
-                          id="res-date"
-                          type="date"
-                          className="w-full bg-black/60 border border-neutral-800 text-white p-4 pl-12 text-xs font-bold focus:border-gold outline-none transition-all [color-scheme:dark]"
-                          value={searchData.date}
-                          onChange={(e) => setSearchData({...searchData, date: e.target.value})}
-                        />
+            {/* Scrollable & Snap Fleet Container */}
+            <div 
+              ref={carouselRef}
+              className="flex gap-6 overflow-x-auto snap-x snap-mandatory pb-4 pt-2 scrollbar-none no-scrollbar"
+              style={{ scrollBehavior: "smooth" }}
+            >
+              {fleetPreview.map((car, idx) => (
+                <div 
+                  key={idx} 
+                  className="min-w-[280px] sm:min-w-[320px] lg:min-w-[300px] flex-1 snap-start bg-card border border-border p-6 flex flex-col justify-between group hover:border-gold/60 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden"
+                >
+                  <div className="space-y-4">
+                    <div className="relative aspect-[16/10] bg-secondary border border-border/50 overflow-hidden">
+                      <NextImage
+                        src={car.image}
+                        alt={car.name}
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                        className="object-contain p-2 group-hover:scale-110 transition-transform duration-500 ease-out"
+                      />
+                      <div className="absolute top-2 left-2">
+                        <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 bg-background/80 text-gold border border-gold/30 backdrop-blur-sm">
+                          {car.category}
+                        </span>
                       </div>
                     </div>
-                    <div className="space-y-2">
-                      <label htmlFor="res-time" className="text-neutral-500 text-[9px] font-black uppercase tracking-[0.2em] ml-1">Arrival Time</label>
-                      <div className="relative">
-                        <Clock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gold/50" />
-                        <input 
-                          id="res-time"
-                          type="time"
-                          className="w-full bg-black/60 border border-neutral-800 text-white p-4 pl-12 text-xs font-bold focus:border-gold outline-none transition-all [color-scheme:dark]"
-                          value={searchData.time}
-                          onChange={(e) => setSearchData({...searchData, time: e.target.value})}
-                        />
+
+                    <div>
+                      <h3 className="font-serif text-lg font-black italic uppercase text-foreground group-hover:text-gold transition-colors">
+                        {car.name}
+                      </h3>
+                      <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-1">
+                        <span className="flex items-center gap-1"><Users className="h-3 w-3 text-gold" /> {car.capacity} Pax</span>
+                        <span className="flex items-center gap-1"><Luggage className="h-3 w-3 text-gold" /> {car.luggage} Bags</span>
                       </div>
+                      <p className="text-xs text-muted-foreground font-medium leading-relaxed mt-3 line-clamp-2">
+                        {car.desc}
+                      </p>
                     </div>
                   </div>
 
-                  <Button 
-                    type="submit"
-                    className="w-full bg-gold hover:bg-gold-dark text-white rounded-none py-8 text-xs font-black uppercase tracking-[0.3em] mt-4 border-b-4 border-gold-dark active:translate-y-1 transition-all"
-                  >
-                    Check Availability
-                  </Button>
-                </form>
-              </div>
+                  <div className="pt-6 mt-6 border-t border-border">
+                    <Link href={`/booking?car=${encodeURIComponent(car.name)}`}>
+                      <Button className="w-full bg-gold hover:bg-gold-dark text-primary-foreground rounded-none py-5 text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95 group-hover:shadow-gold/20">
+                        <Calendar className="h-3.5 w-3.5" />
+                        Reserve
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
-
-          <div className="relative mx-auto max-w-7xl h-[100px] sm:h-[200px] md:h-[400px] mt-12 sm:mt-20 lg:-mt-20 z-0">
-            <NextImage
-              src="/fleet_black_bg.png"
-              alt="Luna Limo Fleet"
-              fill
-              sizes="(max-width: 768px) 100vw, 1280px"
-              className="object-contain opacity-40 lg:opacity-100 grayscale hover:grayscale-0 transition-all duration-1000"
-              loading="lazy"
-            />
           </div>
         </section>
 
         {/* Elite Services Grid */}
-        <section className="py-16 sm:py-24 px-4 sm:px-6 bg-black relative overflow-hidden">
-          <div className="max-w-7xl mx-auto relative z-10">
-            <div className="text-center mb-16">
-              <h3 className="text-gold text-[10px] font-black uppercase tracking-[0.4em] mb-4">Our Expertise</h3>
-              <h2 className="font-serif text-2xl sm:text-3xl md:text-5xl font-black italic uppercase text-white leading-tight">
-                Elite Travel Solutions
+        <section className="py-20 sm:py-28 px-4 sm:px-6 bg-card border-b border-border transition-colors">
+          <div className="max-w-7xl mx-auto space-y-16">
+            <AnimatedSection variant="fadeUp" className="text-center max-w-2xl mx-auto space-y-3">
+              <span className="text-gold text-[10px] font-black uppercase tracking-[0.4em]">
+                Tailored Mobility
+              </span>
+              <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl font-black italic uppercase text-foreground tracking-tight">
+                Concierge Services
               </h2>
-            </div>
+              <p className="text-xs sm:text-sm text-muted-foreground font-medium leading-relaxed">
+                From punctual Sea-Tac airport transfers to all-day executive charters, Luna Limo delivers precision for every itinerary.
+              </p>
+            </AnimatedSection>
 
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+            <AnimatedStaggerContainer className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
               {[
                 {
                   title: "Airport Transfers",
-                  desc: "Punctual, stress-free transfers to and from Sea-Tac International.",
-                  icon: <Globe className="h-8 w-8 text-gold" />
+                  desc: "Punctual, stress-free transfers to and from Sea-Tac International with real-time flight tracking.",
+                  icon: <Globe className="h-7 w-7 text-gold" />,
+                  href: "/services/seattle-airport-limo"
                 },
                 {
                   title: "Corporate Travel",
-                  desc: "Professional black car service for executive meetings and business events.",
-                  icon: <Briefcase className="h-8 w-8 text-gold" />
+                  desc: "Quiet mobile-office experience for high-stakes business meetings, corporate summits, and executives.",
+                  icon: <Briefcase className="h-7 w-7 text-gold" />,
+                  href: "/services/executive-chauffeur-seattle"
                 },
                 {
-                  title: "Special Occasions",
-                  desc: "Luxurious transportation for weddings, anniversaries, and red-carpet events.",
-                  icon: <Trophy className="h-8 w-8 text-gold" />
+                  title: "Special Events",
+                  desc: "Prestigious red-carpet transit for weddings, galas, anniversaries, and VIP milestones.",
+                  icon: <Trophy className="h-7 w-7 text-gold" />,
+                  href: "/services/seattle-wedding-limo"
                 },
                 {
                   title: "City Charters",
-                  desc: "Custom hourly service for city tours, shopping, or dinner bookings.",
-                  icon: <Compass className="h-8 w-8 text-gold" />
+                  desc: "Flexible hourly chauffeur disposal for customized Seattle city tours, dining, and shopping trips.",
+                  icon: <Compass className="h-7 w-7 text-gold" />,
+                  href: "/services/seattle-city-tour-limo"
                 }
               ].map((service, i) => (
-                <div key={i} className="group p-6 sm:p-8 bg-neutral-900 border border-neutral-800 hover:border-gold/50 transition-all duration-500 relative">
-                  <div className="mb-6 transform group-hover:scale-110 transition-transform duration-500">{service.icon}</div>
-                  <h4 className="font-serif font-black italic uppercase text-xl text-white mb-4">{service.title}</h4>
-                  <p className="text-xs text-neutral-400 font-bold uppercase tracking-widest leading-relaxed">
-                    {service.desc}
-                  </p>
-                  <div className="absolute bottom-0 left-0 w-0 h-1 bg-gold transition-all duration-500 group-hover:w-full" />
-                </div>
+                <AnimatedStaggerItem key={i}>
+                  <Link href={service.href} className="group block h-full">
+                    <div className="h-full bg-secondary/50 border border-border p-8 hover:border-gold/50 transition-all duration-300 relative flex flex-col justify-between group-hover:-translate-y-1 shadow-sm">
+                      <div>
+                        <div className="mb-6 transform group-hover:scale-110 transition-transform duration-300">
+                          {service.icon}
+                        </div>
+                        <h3 className="font-serif font-black italic uppercase text-lg sm:text-xl text-foreground mb-3">
+                          {service.title}
+                        </h3>
+                        <p className="text-xs text-muted-foreground font-medium leading-relaxed">
+                          {service.desc}
+                        </p>
+                      </div>
+                      <div className="pt-6 mt-6 border-t border-border flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-gold">
+                        <span>Learn More</span>
+                        <ChevronRight className="h-4 w-4 transform group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    </div>
+                  </Link>
+                </AnimatedStaggerItem>
               ))}
-            </div>
+            </AnimatedStaggerContainer>
           </div>
         </section>
 
-        {/* Feature Section with Background */}
-        <section className="relative py-16 sm:py-24 px-4 sm:px-6 bg-black overflow-hidden border-t border-neutral-900">
-          <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
-            <div className="flex-1 w-full max-w-[500px] lg:max-w-none">
+        {/* The Seattle Advantage / Why Choose Luna */}
+        <section className="py-20 sm:py-28 px-4 sm:px-6 bg-secondary/40 border-b border-border transition-colors">
+          <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            <AnimatedSection variant="slideLeft" className="relative aspect-[4/3] bg-secondary border border-border overflow-hidden">
               <NextImage
                 src="/fleet_black_bg.png"
-                alt="Luxury Car and Seattle Skyline"
-                width={600}
-                height={400}
+                alt="Luna Limo Executive Chauffeur in Seattle"
+                fill
                 sizes="(max-width: 1024px) 100vw, 50vw"
-                loading="lazy"
-                className="w-full h-auto object-contain grayscale hover:grayscale-0 transition-all duration-1000"
+                className="object-cover grayscale hover:grayscale-0 transition-all duration-700"
               />
-            </div>
-            <div className="flex-1 space-y-6 text-center lg:text-left">
-              <h2 className="font-serif text-2xl md:text-3xl lg:text-4xl font-black italic uppercase text-white leading-tight">
-                Seattle Luxury Transportation | Your Premier Choice For Reliability.
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+              <div className="absolute bottom-6 left-6 right-6 text-white">
+                <span className="text-[9px] font-black uppercase tracking-[0.3em] text-gold">Concierge Discretion</span>
+                <p className="font-serif text-xl font-black italic uppercase">Seattle &amp; Bellevue Regional Authority</p>
+              </div>
+            </AnimatedSection>
+
+            <AnimatedSection variant="slideRight" className="space-y-6">
+              <span className="text-gold text-[10px] font-black uppercase tracking-[0.4em]">
+                The Luna Standard
+              </span>
+              <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl font-black italic uppercase text-foreground tracking-tight leading-tight">
+                Punctuality Is Our Primary Luxury.
               </h2>
-              <p className="text-neutral-400 text-xs md:text-sm leading-relaxed font-medium">
-                Luxury is more than a car—it's the peace of mind that your driver is already there. At Luna Limo, we know that your time is your most valuable asset. We are an elite transportation provider, dedicated to delivering precision and comfort for every mile.
+              <p className="text-xs sm:text-sm text-muted-foreground font-medium leading-relaxed">
+                In executive travel, time is the single asset you cannot replenish. At Luna Limo, our drivers arrive at least 15 minutes prior to scheduled pickup, tracking your flight status in real time to adapt to any schedule shifts.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 pt-4 justify-center lg:justify-start">
-                <Link href="tel:+12063274411" className="w-full sm:w-auto">
-                  <Button className="w-full sm:w-auto bg-black hover:bg-neutral-800 text-white rounded-none px-8 py-6 text-[11px] font-black uppercase tracking-widest border-b-2 border-neutral-700">
-                    Call: (206) 327-4411
-                  </Button>
-                </Link>
+
+              <div className="grid grid-cols-2 gap-4 pt-4">
+                <div className="p-4 bg-card border border-border shadow-sm">
+                  <ShieldCheck className="h-5 w-5 text-gold mb-2" />
+                  <h4 className="font-serif text-sm font-black italic uppercase text-foreground">Strict Discretion</h4>
+                  <p className="text-[10px] text-muted-foreground mt-1">Non-disclosure trained private chauffeurs.</p>
+                </div>
+                <div className="p-4 bg-card border border-border shadow-sm">
+                  <Plane className="h-5 w-5 text-gold mb-2" />
+                  <h4 className="font-serif text-sm font-black italic uppercase text-foreground">Flight Tracking</h4>
+                  <p className="text-[10px] text-muted-foreground mt-1">Automatic Sea-Tac delay &amp; arrival adjustments.</p>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-4 pt-4">
                 <Link href="/booking" className="w-full sm:w-auto">
-                  <Button className="w-full sm:w-auto bg-gold hover:bg-gold-dark text-white rounded-none px-8 py-6 text-[11px] font-black uppercase tracking-widest border-b-4 border-gold-dark">
+                  <Button className="w-full sm:w-auto bg-gold hover:bg-gold-dark text-primary-foreground rounded-none px-8 py-6 text-xs font-black uppercase tracking-[0.2em] shadow-md">
                     Book Your Ride Now
                   </Button>
                 </Link>
+                <Link href="tel:+12063274411" className="w-full sm:w-auto">
+                  <Button variant="outline" className="w-full sm:w-auto border-border text-foreground hover:bg-secondary rounded-none px-8 py-6 text-xs font-black uppercase tracking-[0.2em]">
+                    Direct: (206) 327-4411
+                  </Button>
+                </Link>
               </div>
-            </div>
+            </AnimatedSection>
           </div>
         </section>
 
         {/* FAQs Section */}
-        <section className="py-16 sm:py-24 px-4 sm:px-6 bg-neutral-900 relative overflow-hidden">
-          <div className="max-w-4xl mx-auto relative z-10">
-            <div className="text-center mb-16">
-              <h3 className="text-gold text-[10px] font-black uppercase tracking-[0.4em] mb-4">Common Inquiries</h3>
-              <h2 className="font-serif text-2xl sm:text-3xl md:text-5xl font-black italic uppercase text-white">
+        <section className="py-20 sm:py-28 px-4 sm:px-6 bg-card border-b border-border transition-colors">
+          <div className="max-w-4xl mx-auto space-y-12">
+            <AnimatedSection variant="fadeUp" className="text-center space-y-3">
+              <span className="text-gold text-[10px] font-black uppercase tracking-[0.4em]">
+                Inquiries &amp; Policies
+              </span>
+              <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl font-black italic uppercase text-foreground">
                 Frequently Asked
               </h2>
-            </div>
+            </AnimatedSection>
 
-            <div className="space-y-4">
+            <AnimatedStaggerContainer className="space-y-4">
               {[
                 {
-                  q: "How far in advance should I book?",
-                  a: "We recommend booking at least 24 hours in advance for airport transfers and 48 hours for special events to ensure full vehicle availability."
+                  q: "How far in advance should I book my chauffeur?",
+                  a: "We recommend booking at least 24 hours in advance for airport transfers and 48 hours for special events or multi-vehicle group logistics to guarantee vehicle class availability."
                 },
                 {
-                  q: "What is your cancellation policy?",
-                  a: "Cancellations made 24 hours prior to the scheduled pickup receive a full refund. Same-day cancellations may incur a standard fee."
+                  q: "What happens if my inbound flight to Sea-Tac is delayed?",
+                  a: "We track your flight number in real time. Your pickup time and driver dispatch automatically sync to your actual touchdown time, with complimentary wait time included."
                 },
                 {
-                  q: "Do you offer meet and greet at Sea-Tac?",
-                  a: "Yes, our executive airport service includes a baggage claim meet-and-greet with a personalized name board."
+                  q: "Do you offer Meet and Greet inside Sea-Tac airport?",
+                  a: "Yes. Our executive airport service includes baggage claim meet-and-greet with a personalized digital signage upon request."
                 },
                 {
-                  q: "Are your vehicles smoke-free?",
-                  a: "Absolutely. All vehicles in our fleet are strictly non-smoking to ensure a premium environment for all guests."
+                  q: "What is your cancellation and modification policy?",
+                  a: "Cancellations made 24 hours prior to the scheduled pickup receive a full refund. Same-day modifications can be arranged directly via our 24/7 dispatch desk."
                 }
               ].map((faq, i) => (
-                <div key={i} className="group p-6 bg-black border border-neutral-800 hover:border-gold/30 transition-all">
-                  <h4 className="font-serif font-black italic uppercase text-lg text-gold mb-3 flex items-center gap-3">
-                    <span className="text-xs font-sans not-italic border border-gold/40 px-2 py-0.5 rounded text-gold/60">Q</span>
-                    {faq.q}
-                  </h4>
-                  <p className="text-xs text-neutral-400 font-bold uppercase tracking-widest leading-relaxed pl-10">
-                    {faq.a}
-                  </p>
-                </div>
+                <AnimatedStaggerItem key={i}>
+                  <div className="p-6 bg-secondary/50 border border-border space-y-2 shadow-sm">
+                    <h3 className="font-serif font-black italic uppercase text-base sm:text-lg text-foreground flex items-center gap-2.5">
+                      <span className="text-xs font-sans not-italic border border-gold/40 px-2 py-0.5 text-gold font-bold">Q</span>
+                      {faq.q}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground font-medium leading-relaxed pl-8">
+                      {faq.a}
+                    </p>
+                  </div>
+                </AnimatedStaggerItem>
               ))}
-            </div>
+            </AnimatedStaggerContainer>
           </div>
         </section>
 
-        {/* Black Section / CTA */}
-        <section className="bg-neutral-900 py-20 sm:py-32 px-4 sm:px-6 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1 bg-gold" />
-          <div className="max-w-4xl mx-auto text-center space-y-12">
-            <div className="flex justify-center">
-              <div className="relative w-24 h-24">
-                <div className="absolute inset-0 bg-gold rotate-45 flex items-center justify-center">
-                  <div className="bg-neutral-900 w-full h-full transform scale-90 border-4 border-gold" />
-                </div>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-gold font-serif font-black text-4xl italic uppercase tracking-tighter">L</span>
-                </div>
-              </div>
-            </div>
-
-            <h2 className="font-serif text-2xl sm:text-3xl md:text-5xl font-black italic uppercase text-white leading-tight">
-              Our Chauffeur Driven Services
+        {/* Final Conversion CTA */}
+        <section className="py-20 sm:py-32 px-4 sm:px-6 bg-secondary text-foreground relative overflow-hidden border-t border-border">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gold" />
+          <AnimatedSection variant="scale" className="max-w-4xl mx-auto text-center space-y-8 relative z-10">
+            <h2 className="font-serif text-3xl sm:text-5xl md:text-6xl font-black italic uppercase tracking-tight text-foreground">
+              Ready For <span className="text-gradient-gold">First-Class</span> Travel?
             </h2>
-
-            <p className="text-neutral-400 text-xs md:text-sm leading-relaxed font-bold tracking-widest px-4 uppercase max-w-2xl mx-auto">
-              Reliable airport transfers, executive corporate services, and bespoke special event transportation across the Seattle region.
+            <p className="text-xs sm:text-sm md:text-base text-muted-foreground font-medium uppercase tracking-widest max-w-xl mx-auto leading-relaxed">
+              Experience executive transportation tailored to your precision. Available 24/7 across Seattle, Bellevue, Redmond, and Sea-Tac.
             </p>
-
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8">
-              <Link href="tel:+12063274411" className="w-full sm:w-auto">
-                <Button size="lg" className="bg-white hover:bg-neutral-100 text-black rounded-none px-8 sm:px-12 py-6 sm:py-8 text-[10px] sm:text-xs font-black uppercase tracking-[0.15em] sm:tracking-[0.2em] w-full">
-                  Call: (206) 327-4411
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+              <Link href="/booking" className="w-full sm:w-auto">
+                <Button size="lg" className="w-full sm:w-auto bg-gold hover:bg-gold-dark text-primary-foreground rounded-none px-10 py-7 text-xs font-black uppercase tracking-[0.2em] shadow-2xl">
+                  Reserve Online
                 </Button>
               </Link>
-              <Link href="/booking" className="w-full sm:w-auto">
-                <Button size="lg" className="bg-gold hover:bg-gold-dark text-white rounded-none px-8 sm:px-12 py-6 sm:py-8 text-[10px] sm:text-xs font-black uppercase tracking-[0.15em] sm:tracking-[0.2em] w-full">
-                  Book Your Ride Now
+              <Link href="tel:+12063274411" className="w-full sm:w-auto">
+                <Button size="lg" variant="outline" className="w-full sm:w-auto border-border text-foreground hover:bg-card rounded-none px-10 py-7 text-xs font-black uppercase tracking-[0.2em]">
+                  Call (206) 327-4411
                 </Button>
               </Link>
             </div>
-          </div>
+          </AnimatedSection>
         </section>
       </main>
-
     </div>
   );
 }

@@ -96,15 +96,15 @@ export default function SuccessContent() {
 
   if (status === "verifying") {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+      <div className="min-h-[70vh] bg-background text-foreground flex items-center justify-center transition-colors">
         <div className="text-center space-y-6">
-          <div className="w-20 h-20 rounded-full bg-gold/10 flex items-center justify-center mx-auto border border-gold/20">
-            <CheckCircle className="h-12 w-12 text-gold" />
+          <div className="w-20 h-20 rounded-full bg-gold/10 flex items-center justify-center mx-auto border border-gold/30">
+            <CheckCircle className="h-10 w-10 text-gold animate-pulse" />
           </div>
-          <h2 className="font-serif text-3xl font-black italic uppercase">
+          <h2 className="font-serif text-3xl font-black italic uppercase text-foreground">
             Processing <span className="text-gold">Payment</span>
           </h2>
-          <p className="text-neutral-400 font-bold uppercase tracking-widest text-xs">
+          <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs">
             Please wait while we confirm your booking...
           </p>
         </div>
@@ -114,23 +114,23 @@ export default function SuccessContent() {
 
   if (status === "error") {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <div className="max-w-md mx-auto text-center space-y-8 px-4">
-          <div className="w-20 h-20 rounded-full bg-red-900/20 flex items-center justify-center mx-auto border border-red-800">
-            <XCircle className="h-12 w-12 text-red-400" />
+      <div className="min-h-[70vh] bg-background text-foreground flex items-center justify-center transition-colors">
+        <div className="max-w-md mx-auto text-center space-y-6 px-4 bg-card p-8 border border-border shadow-xl">
+          <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mx-auto border border-destructive/30">
+            <XCircle className="h-8 w-8 text-destructive" />
           </div>
-          <h2 className="font-serif text-3xl font-black italic uppercase">
-            Payment <span className="text-red-400">Failed</span>
+          <h2 className="font-serif text-2xl sm:text-3xl font-black italic uppercase text-foreground">
+            Payment <span className="text-destructive">Failed</span>
           </h2>
-          <p className="text-neutral-400 font-bold uppercase tracking-widest text-xs">
+          <p className="text-muted-foreground font-medium text-xs leading-relaxed">
             {errorMessage}
           </p>
           <Button
             onClick={() => router.push("/booking")}
-            className="bg-gold hover:bg-gold-dark text-white rounded-none px-12 py-8 text-xs font-sans font-black uppercase tracking-[0.2em] shadow-lg"
+            className="w-full bg-gold hover:bg-gold-dark text-primary-foreground rounded-none py-6 text-xs font-sans font-black uppercase tracking-[0.2em] shadow-lg flex items-center justify-center gap-2"
           >
             Return to Booking
-            <ArrowRight className="ml-2 h-4 w-4" />
+            <ArrowRight className="h-4 w-4" />
           </Button>
         </div>
       </div>
@@ -139,23 +139,23 @@ export default function SuccessContent() {
 
   if (status === "already_processed") {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <div className="max-w-md mx-auto text-center space-y-8 px-4">
-          <div className="w-20 h-20 rounded-full bg-gold/10 flex items-center justify-center mx-auto border border-gold/20">
-            <CheckCircle className="h-12 w-12 text-gold" />
+      <div className="min-h-[70vh] bg-background text-foreground flex items-center justify-center transition-colors">
+        <div className="max-w-md mx-auto text-center space-y-6 px-4 bg-card p-8 border border-border shadow-xl">
+          <div className="w-16 h-16 rounded-full bg-gold/10 flex items-center justify-center mx-auto border border-gold/30">
+            <CheckCircle className="h-8 w-8 text-gold" />
           </div>
-          <h2 className="font-serif text-3xl font-black italic uppercase">
+          <h2 className="font-serif text-2xl sm:text-3xl font-black italic uppercase text-foreground">
             Booking <span className="text-gold">Confirmed</span>
           </h2>
-          <p className="text-neutral-400 font-bold uppercase tracking-widest text-xs">
+          <p className="text-muted-foreground font-medium text-xs leading-relaxed">
             Your booking has already been processed. Our concierge will contact you shortly.
           </p>
           <Button
             onClick={() => router.push("/")}
-            className="bg-gold hover:bg-gold-dark text-white rounded-none px-12 py-8 text-xs font-sans font-black uppercase tracking-[0.2em] shadow-lg"
+            className="w-full bg-gold hover:bg-gold-dark text-primary-foreground rounded-none py-6 text-xs font-sans font-black uppercase tracking-[0.2em] shadow-lg flex items-center justify-center gap-2"
           >
             Return Home
-            <ArrowRight className="ml-2 h-4 w-4" />
+            <ArrowRight className="h-4 w-4" />
           </Button>
         </div>
       </div>
@@ -163,34 +163,34 @@ export default function SuccessContent() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white overflow-x-hidden">
-      <main className="max-w-4xl mx-auto py-20 px-4 sm:px-6 text-center">
-        <div className="w-20 h-20 rounded-full bg-gold/10 flex items-center justify-center mx-auto mb-8 border border-gold/20">
-          <CheckCircle className="h-12 w-12 text-gold" />
+    <div className="min-h-[80vh] bg-background text-foreground overflow-x-hidden transition-colors">
+      <main className="max-w-4xl mx-auto py-16 sm:py-24 px-4 sm:px-6 text-center">
+        <div className="w-20 h-20 rounded-full bg-gold/10 flex items-center justify-center mx-auto mb-6 border border-gold/30">
+          <CheckCircle className="h-10 w-10 text-gold" />
         </div>
-        <h2 className="font-serif text-4xl md:text-6xl font-black italic uppercase mb-4 text-white">
+        <h2 className="font-serif text-3xl sm:text-5xl md:text-6xl font-black italic uppercase mb-3 text-foreground">
           Booking <span className="text-gold">Confirmed</span>
         </h2>
-        <p className="text-neutral-400 mb-12 font-bold uppercase tracking-widest text-xs">
+        <p className="text-muted-foreground mb-10 font-bold uppercase tracking-widest text-xs max-w-md mx-auto">
           Payment successful. Your luxury ride has been reserved. Our concierge will contact you shortly.
         </p>
 
-        <Card className="max-w-md mx-auto p-8 mb-12 border-neutral-800 shadow-2xl bg-neutral-900 text-left rounded-none">
-          <h3 className="font-serif font-black italic uppercase text-xl mb-6 pb-2 border-b border-neutral-800 text-gold">Booking Summary</h3>
-          <div className="space-y-4">
+        <Card className="max-w-md mx-auto p-6 sm:p-8 mb-10 border-border shadow-2xl bg-card text-left rounded-none">
+          <h3 className="font-serif font-black italic uppercase text-lg mb-4 pb-2 border-b border-border text-gold">Booking Summary</h3>
+          <div className="space-y-3.5 text-xs">
             <div className="flex justify-between gap-4">
-              <span className="text-neutral-500 font-bold uppercase text-[10px] tracking-widest">Status</span>
-              <span className="text-sm font-bold text-gold">PAID</span>
+              <span className="text-muted-foreground font-bold uppercase text-[9px] tracking-widest">Status</span>
+              <span className="text-xs font-black text-emerald-600 dark:text-emerald-400">PAID &amp; CONFIRMED</span>
             </div>
             {rideId && (
               <div className="flex justify-between gap-4">
-                <span className="text-neutral-500 font-bold uppercase text-[10px] tracking-widest">Booking ID</span>
-                <span className="text-sm font-bold text-gold">{rideId}</span>
+                <span className="text-muted-foreground font-bold uppercase text-[9px] tracking-widest">Booking ID</span>
+                <span className="text-xs font-bold text-gold">{rideId}</span>
               </div>
             )}
             {amount && (
-              <div className="pt-4 border-t border-neutral-800 flex justify-between items-center">
-                <span className="text-neutral-500 font-black uppercase text-[11px] tracking-widest">Total Paid</span>
+              <div className="pt-3 border-t border-border flex justify-between items-center">
+                <span className="text-muted-foreground font-black uppercase text-[10px] tracking-widest">Total Paid</span>
                 <span className="text-2xl font-serif font-black italic text-gold">
                   {formatPrice(amount)}
                 </span>
@@ -201,10 +201,10 @@ export default function SuccessContent() {
 
         <Button
           onClick={() => router.push("/")}
-          className="bg-gold hover:bg-gold-dark text-white rounded-none px-12 py-8 text-xs font-sans font-black uppercase tracking-[0.2em] shadow-lg"
+          className="bg-gold hover:bg-gold-dark text-primary-foreground rounded-none px-10 py-6 text-xs font-sans font-black uppercase tracking-[0.2em] shadow-lg inline-flex items-center gap-2"
         >
           Return Home
-          <ArrowRight className="ml-2 h-4 w-4" />
+          <ArrowRight className="h-4 w-4" />
         </Button>
       </main>
     </div>

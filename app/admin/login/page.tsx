@@ -45,49 +45,49 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-neutral-900 border border-neutral-800 p-8 sm:p-12 relative overflow-hidden shadow-2xl">
+    <div className="min-h-screen bg-background text-foreground font-sans flex items-center justify-center p-4">
+      <div className="w-full max-w-md bg-card border border-border p-8 sm:p-12 relative overflow-hidden shadow-2xl">
         <div className="absolute top-0 left-0 w-1 h-full bg-gold" />
         
         <div className="mb-10 text-center">
           <ShieldCheck className="h-12 w-12 text-gold mx-auto mb-6" />
           <h3 className="text-gold text-[10px] font-black uppercase tracking-[0.3em] mb-4">Luna Limo</h3>
-          <h4 className="font-serif text-3xl font-black italic uppercase text-white">Admin</h4>
+          <h4 className="font-serif text-3xl font-black italic uppercase text-foreground">Admin</h4>
         </div>
 
         <form onSubmit={handleSubmit} method="POST" action="#" className="space-y-6">
           
            {error && (
-             <div className="bg-red-950/50 border border-red-900 text-red-500 text-xs font-bold p-4 text-center">
+             <div className="bg-destructive/10 border border-destructive/30 text-destructive text-xs font-bold p-4 text-center">
                {error}
              </div>
            )}
 
           <div className="space-y-2 relative">
-            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-500" />
+            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <input 
               name="email" 
               type="email"
               placeholder="Admin Email" 
               required
               defaultValue="Admin@lunalimoz.com"
-              className="w-full bg-black border border-neutral-800 pl-12 pr-6 py-4 rounded-none text-xs font-bold text-white focus:border-gold outline-none transition-all placeholder:text-neutral-600" 
+              className="w-full bg-secondary border border-border pl-12 pr-6 py-4 rounded-none text-xs font-bold text-foreground focus:border-gold outline-none transition-all placeholder:text-muted-foreground" 
             />
           </div>
 
           <div className="space-y-2 relative">
-            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-500" />
+            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <input 
               name="password" 
               type={showPassword ? "text" : "password"}
               placeholder="Passcode" 
               required
-              className="w-full bg-black border border-neutral-800 pl-12 pr-12 py-4 rounded-none text-xs font-bold text-white focus:border-gold outline-none transition-all placeholder:text-neutral-600" 
+              className="w-full bg-secondary border border-border pl-12 pr-12 py-4 rounded-none text-xs font-bold text-foreground focus:border-gold outline-none transition-all placeholder:text-muted-foreground" 
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-gold transition-colors focus:outline-none p-1"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-gold transition-colors focus:outline-none p-1"
               aria-label={showPassword ? "Hide passcode" : "Show passcode"}
             >
               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -98,7 +98,7 @@ export default function AdminLoginPage() {
             <Button 
               type="submit" 
               disabled={isLoading}
-              className="w-full bg-gold hover:bg-gold-dark text-white rounded-none py-6 text-[11px] font-black uppercase tracking-[0.3em] border-b-4 border-gold-dark transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+              className="w-full bg-gold hover:bg-gold-dark text-primary-foreground rounded-none py-6 text-[11px] font-black uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-3 disabled:opacity-50 shadow-md"
             >
               {isLoading ? "Authenticating..." : "Authorize Access"}
             </Button>

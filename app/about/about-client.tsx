@@ -5,129 +5,117 @@ import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { 
-  History, 
   MapPin, 
-  Award, 
   Clock, 
-  Calendar,
-  ArrowRight,
-  Shield,
-  Star,
-  Users
+  Shield, 
+  Star, 
+  Users, 
+  Sparkles 
 } from "lucide-react";
 
 export default function AboutClient() {
   return (
-    <div className="min-h-screen bg-black text-white font-sans overflow-x-hidden w-full">
+    <div className="min-h-screen bg-background text-foreground font-sans overflow-x-hidden w-full transition-colors duration-200">
       <main>
         {/* About Hero Section */}
-        <section className="relative py-24 sm:py-32 px-4 sm:px-6 overflow-hidden bg-black text-white border-b border-neutral-900">
-          <div className="max-w-7xl mx-auto text-center relative z-20">
-             <div className="inline-flex items-center gap-2 px-4 py-2 bg-gold/10 border border-gold/20 rounded-none mb-8">
-              <History className="h-4 w-4 text-gold" />
+        <section className="relative py-16 sm:py-24 px-4 sm:px-6 overflow-hidden bg-secondary/40 border-b border-border transition-colors">
+          <div className="max-w-7xl mx-auto text-center relative z-20 space-y-4">
+             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-gold/10 border border-gold/30 rounded-none">
+              <Sparkles className="h-3.5 w-3.5 text-gold" />
               <span className="text-gold text-[10px] font-black uppercase tracking-[0.3em]">Our Legacy</span>
             </div>
             
-            <h1 className="font-serif text-3xl sm:text-5xl md:text-8xl font-black italic uppercase text-white leading-[0.9] tracking-tight mb-8">
-              Professional <br /> 
+            <h1 className="font-serif text-3xl sm:text-5xl md:text-7xl font-black italic uppercase text-foreground leading-tight tracking-tight">
+              Executive <br /> 
               <span className="text-gold">Excellence</span>
             </h1>
             
-            <p className="text-sm sm:text-lg text-neutral-400 max-w-3xl mx-auto font-medium leading-relaxed uppercase tracking-wider px-2">
-              LUNA LIMO IS A PREMIER CHAUFFEUR SERVICE DEDICATED TO REDEFINING THE ART OF TRAVEL. 
-              WE PROVIDE BEYOND TRANSPORT; WE DELIVER AN EXPERIENCE.
+            <p className="text-xs sm:text-sm md:text-base text-muted-foreground max-w-2xl mx-auto font-medium leading-relaxed">
+              Luna Limo is a premier chauffeur and luxury black car service dedicated to redefining private transit across the Seattle metropolitan region. Beyond simple transport, we deliver peace of mind.
             </p>
-          </div>
-
-          {/* Background Branding Elements */}
-          <div className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-20">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] bg-gold/5 rounded-full blur-[150px]" />
           </div>
         </section>
 
         {/* The Foundation Section */}
-        <section className="py-20 sm:py-32 bg-neutral-950">
+        <section className="py-16 sm:py-24 bg-background transition-colors">
           <div className="max-w-7xl mx-auto px-4 sm:px-6">
-            <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
-              <div className="space-y-10 order-2 lg:order-1">
-                 <div className="space-y-4">
-                  <h3 className="text-gold text-[11px] font-black uppercase tracking-[0.5em]">The Foundation</h3>
-                  <h2 className="font-serif text-2xl sm:text-4xl md:text-6xl font-black italic uppercase text-white">
-                    Est <span className="text-gold">02.20.2023</span>
+            <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+              <div className="space-y-6 order-2 lg:order-1">
+                 <div className="space-y-2">
+                  <span className="text-gold text-[10px] font-black uppercase tracking-[0.4em]">The Foundation</span>
+                  <h2 className="font-serif text-2xl sm:text-4xl font-black italic uppercase text-foreground">
+                    Est. <span className="text-gold">Seattle, WA</span>
                   </h2>
                  </div>
 
-                <div className="space-y-6">
-                  <p className="text-neutral-400 text-sm sm:text-base leading-relaxed font-medium uppercase tracking-[0.05em]">
-                    Founded in early 2023, Luna Limo was established with a singular vision: to bring a concierge-level of service to the professional transit industry. In a world of automated transport, we choose the personal touch.
+                <div className="space-y-4 text-muted-foreground text-xs sm:text-sm leading-relaxed font-medium">
+                  <p>
+                    Established with a singular commitment: to bring an uncompromising standard of punctuality, privacy, and vehicle presentation to regional executive transportation. In an era of automated ridesharing, Luna Limo offers the irreplaceable reliability of seasoned, dedicated chauffeurs.
                   </p>
-                  <p className="text-neutral-500 text-xs sm:text-sm font-medium uppercase tracking-widest leading-loose">
-                    Since our inception in Seattle, we have grown from a boutique luxury service into a premier regional provider, while maintaining the same commitment to punctuality, privacy, and precision that defined our very first journey.
+                  <p>
+                    From corporate executives visiting South Lake Union and the Redmond Microsoft campus to wedding parties and Sea-Tac international travelers, our dispatch team operates 24 hours a day, 365 days a year to manage every detail.
                   </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-6 pt-4">
-                  <div className="p-6 bg-black border border-neutral-900 group hover:border-gold transition-colors duration-500">
-                    <MapPin className="h-8 w-8 text-gold mb-4" />
-                    <h4 className="text-white font-serif text-lg font-black italic uppercase">Headquarters</h4>
-                    <span className="text-neutral-500 text-[10px] font-bold uppercase tracking-widest">Seattle, Washington</span>
+                <div className="grid grid-cols-2 gap-4 pt-2">
+                  <div className="p-5 bg-card border border-border shadow-sm">
+                    <MapPin className="h-6 w-6 text-gold mb-2" />
+                    <h3 className="text-foreground font-serif text-base font-black italic uppercase">Headquarters</h3>
+                    <p className="text-muted-foreground text-[10px] font-bold uppercase tracking-wider mt-0.5">Seattle, Washington</p>
                   </div>
-                  <div className="p-6 bg-black border border-neutral-900 group hover:border-gold transition-colors duration-500">
-                    <Clock className="h-8 w-8 text-gold mb-4" />
-                    <h4 className="text-white font-serif text-lg font-black italic uppercase">Operations</h4>
-                    <span className="text-neutral-500 text-[10px] font-bold uppercase tracking-widest">24/7 Global Availability</span>
+                  <div className="p-5 bg-card border border-border shadow-sm">
+                    <Clock className="h-6 w-6 text-gold mb-2" />
+                    <h3 className="text-foreground font-serif text-base font-black italic uppercase">Operations</h3>
+                    <p className="text-muted-foreground text-[10px] font-bold uppercase tracking-wider mt-0.5">24/7 Dispatch</p>
                   </div>
                 </div>
               </div>
 
-              <div className="relative aspect-square order-1 lg:order-2">
-                 <div className="absolute inset-4 bg-gold opacity-10 blur-3xl animate-pulse" />
-                 <div className="relative w-full h-full bg-neutral-900 border border-neutral-800 p-2 overflow-hidden">
-                    <Image 
-                      src="/luxury_suv.png" 
-                      alt="The Luna Standard" 
-                      fill 
-                      className="object-contain grayscale hover:grayscale-0 transition-all duration-1000 scale-110"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent flex flex-col justify-end p-8">
-                       <span className="text-white font-serif text-4xl font-black italic leading-none opacity-20 uppercase">Luna Prestige</span>
-                    </div>
-                 </div>
+              <div className="relative aspect-[4/3] bg-secondary border border-border overflow-hidden order-1 lg:order-2 shadow-sm">
+                <Image 
+                  src="/luxury_suv.png" 
+                  alt="Luna Limo Executive Chauffeur SUV" 
+                  fill 
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  className="object-contain p-6 grayscale hover:grayscale-0 transition-all duration-700"
+                />
               </div>
             </div>
           </div>
         </section>
 
         {/* Pillars of Excellence */}
-        <section className="py-24 sm:py-32 bg-black border-y border-neutral-900">
+        <section className="py-16 sm:py-24 bg-secondary/30 border-t border-border transition-colors">
           <div className="max-w-7xl mx-auto px-4 sm:px-6">
-            <div className="text-center mb-20 space-y-4">
-              <h3 className="text-gold text-[10px] font-black uppercase tracking-[0.5em]">The Pillars</h3>
-              <h2 className="font-serif text-2xl sm:text-6xl font-black italic uppercase text-white">Our Core <span className="text-gold">Values</span></h2>
+            <div className="text-center mb-12 sm:mb-16 space-y-3">
+              <span className="text-gold text-[10px] font-black uppercase tracking-[0.4em]">The Pillars</span>
+              <h2 className="font-serif text-2xl sm:text-4xl md:text-5xl font-black italic uppercase text-foreground">Our Core <span className="text-gold">Values</span></h2>
             </div>
 
             <div className="grid md:grid-cols-3 gap-8">
               {[
                 { 
                   title: "Elite Chauffeurs", 
-                  desc: "Every driver is a professional concierge, trained in defensive driving and discreet service protocol.", 
-                  icon: <Users className="h-10 w-10" /> 
+                  desc: "Every driver is professionally trained in executive etiquette, defensive driving, and strict confidentiality protocols.", 
+                  icon: <Users className="h-7 w-7 text-gold" /> 
                 },
                 { 
                   title: "Pristine Fleet", 
-                  desc: "Our vehicles undergo hospital-grade sanitization and a 50-point mechanical inspection daily.", 
-                  icon: <Star className="h-10 w-10" /> 
+                  desc: "Our late-model vehicles undergo complete sanitization and a multi-point mechanical inspection before every reservation.", 
+                  icon: <Star className="h-7 w-7 text-gold" /> 
                 },
                 { 
-                  title: "Secure Transit", 
-                  desc: "Safety and security are integrated into every mile, with 24/7 monitoring and route optimization.", 
-                  icon: <Shield className="h-10 w-10" /> 
+                  title: "Guaranteed Punctuality", 
+                  desc: "Time is your most valuable asset. Our flight-tracking technology ensures your driver is waiting before you touch down.", 
+                  icon: <Shield className="h-7 w-7 text-gold" /> 
                 }
               ].map((pillar, pidx) => (
-                <div key={pidx} className="p-10 bg-neutral-950 border border-neutral-800 hover:border-gold transition-all duration-700 space-y-6 flex flex-col items-center text-center group">
-                   <div className="text-gold group-hover:scale-110 transition-transform duration-500">{pillar.icon}</div>
-                   <h3 className="font-serif text-2xl font-black italic uppercase text-white">{pillar.title}</h3>
-                   <p className="text-neutral-500 text-xs sm:text-sm font-medium uppercase tracking-[0.1em] leading-relaxed">
+                <div key={pidx} className="p-8 bg-card border border-border space-y-4 text-center shadow-sm">
+                   <div className="inline-flex items-center justify-center w-12 h-12 bg-gold/10 border border-gold/30 rounded-full mx-auto">
+                     {pillar.icon}
+                   </div>
+                   <h3 className="font-serif text-xl font-black italic uppercase text-foreground">{pillar.title}</h3>
+                   <p className="text-muted-foreground text-xs sm:text-sm font-medium leading-relaxed">
                      {pillar.desc}
                    </p>
                 </div>
@@ -136,34 +124,28 @@ export default function AboutClient() {
           </div>
         </section>
 
-        {/* Timeline / CTA Section */}
-        <section className="py-24 sm:py-40 bg-neutral-950 relative overflow-hidden">
-           <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10 text-center">
-              <div className="mb-12">
-                 <h2 className="font-serif text-3xl sm:text-7xl font-black italic uppercase text-white leading-tight">
-                   The Future Of <br />
-                   <span className="text-gold">Elite Transport</span>
-                 </h2>
-              </div>
+        {/* CTA Section */}
+        <section className="py-16 sm:py-24 bg-secondary text-foreground relative overflow-hidden border-t border-border">
+           <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center space-y-6">
+              <h2 className="font-serif text-2xl sm:text-4xl md:text-5xl font-black italic uppercase leading-tight text-foreground">
+                Experience The <span className="text-gradient-gold">Luna Standard</span>
+              </h2>
+              <p className="text-xs sm:text-sm text-muted-foreground max-w-xl mx-auto uppercase tracking-widest font-medium">
+                Reserve online or speak with our executive dispatch team.
+              </p>
               
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-10">
-                <Link href="/reservations" className="w-full sm:w-auto">
-                    <Button className="w-full sm:w-auto bg-gold hover:bg-gold-dark text-white rounded-none px-12 py-8 text-[12px] font-black uppercase tracking-widest border-b-4 border-gold-dark flex items-center justify-center gap-2">
-                      <Calendar className="h-5 w-5" />
-                      Experience Excellence
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
+                <Link href="/booking" className="w-full sm:w-auto">
+                    <Button className="w-full sm:w-auto bg-gold hover:bg-gold-dark text-primary-foreground rounded-none px-8 py-6 text-xs font-black uppercase tracking-widest shadow-xl">
+                      Book Reservation
                     </Button>
                 </Link>
                 <Link href="/contact" className="w-full sm:w-auto">
-                    <Button variant="outline" className="w-full sm:w-auto border-white text-white hover:bg-white hover:text-black rounded-none px-12 py-8 text-[12px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2">
-                      <ArrowRight className="h-5 w-5" />
-                      Our Standards
+                    <Button variant="outline" className="w-full sm:w-auto border-border text-foreground hover:bg-card rounded-none px-8 py-6 text-xs font-black uppercase tracking-widest">
+                      Contact Concierge
                     </Button>
                 </Link>
               </div>
-           </div>
-
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full text-center opacity-5 select-none pointer-events-none">
-              <span className="font-serif text-[15vw] font-black italic uppercase text-white">LUNA PRESTIGE</span>
            </div>
         </section>
       </main>

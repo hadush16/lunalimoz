@@ -55,13 +55,13 @@ export default function AdminLayout({
   ];
 
   return (
-    <div className="h-screen overflow-hidden bg-slate-50 dark:bg-black text-slate-900 dark:text-white font-sans flex flex-col md:flex-row relative transition-colors duration-200">
+    <div className="h-screen overflow-hidden bg-background text-foreground font-sans flex flex-col md:flex-row relative transition-colors duration-200">
       
       {/* Mobile Header */}
-      <header className="md:hidden bg-slate-100 dark:bg-neutral-900 border-b border-slate-200 dark:border-neutral-800 p-4 flex items-center justify-between z-40">
+      <header className="md:hidden bg-card border-b border-border p-4 flex items-center justify-between z-40">
         <div className="flex items-center gap-3">
-          <ShieldCheck className="h-5 w-5 text-amber-600 dark:text-gold" />
-          <h2 className="font-serif text-sm font-black italic uppercase text-slate-900 dark:text-white tracking-widest">Admin</h2>
+          <ShieldCheck className="h-5 w-5 text-gold" />
+          <h2 className="font-serif text-sm font-black italic uppercase text-foreground tracking-widest">Admin</h2>
         </div>
         <div className="flex items-center gap-2">
           <ThemeToggle />
@@ -70,7 +70,7 @@ export default function AdminLayout({
             variant="ghost" 
             size="icon" 
             onClick={() => setIsSidebarOpen(true)}
-            className="text-amber-600 dark:text-gold"
+            className="text-gold"
           >
             <Menu className="h-6 w-6" />
           </Button>
@@ -87,24 +87,24 @@ export default function AdminLayout({
 
       {/* Sidebar Navigation */}
       <aside className={`
-        fixed inset-y-0 left-0 w-64 bg-slate-100 dark:bg-neutral-900 border-r border-slate-200 dark:border-neutral-800 flex flex-col z-[60] transition-transform duration-300 md:relative md:translate-x-0
+        fixed inset-y-0 left-0 w-64 bg-card border-r border-border flex flex-col z-[60] transition-transform duration-300 md:relative md:translate-x-0
         ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
       `}>
         
         {/* Brand Header */}
-        <div className="p-6 border-b border-slate-200 dark:border-neutral-800 flex items-center justify-between gap-4">
+        <div className="p-6 border-b border-border flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <ShieldCheck className="h-6 w-6 text-amber-600 dark:text-gold" />
+              <ShieldCheck className="h-6 w-6 text-gold" />
               <div>
-                <h2 className="font-serif text-lg font-black italic uppercase text-slate-900 dark:text-white tracking-wider">Admin Portal</h2>
-                <p className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-500 dark:text-neutral-500">Luna Limo</p>
+                <h2 className="font-serif text-lg font-black italic uppercase text-foreground tracking-wider">Admin Portal</h2>
+                <p className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground">Luna Limo</p>
               </div>
             </div>
             <Button 
               variant="ghost" 
               size="icon" 
               onClick={closeSidebar}
-              className="md:hidden text-slate-500 dark:text-neutral-500 hover:text-slate-900 dark:hover:text-white"
+              className="md:hidden text-muted-foreground hover:text-foreground"
             >
               <X className="h-5 w-5" />
             </Button>
@@ -123,11 +123,11 @@ export default function AdminLayout({
                 onClick={closeSidebar}
                 className={`flex items-center gap-3.5 px-4 py-3.5 transition-all border-l-2 ${
                   isActive 
-                    ? "bg-white dark:bg-black border-amber-500 dark:border-gold text-slate-900 dark:text-white font-bold shadow-sm" 
-                    : "border-transparent text-slate-600 dark:text-neutral-400 hover:bg-slate-200/60 dark:hover:bg-neutral-800/50 hover:text-slate-900 dark:hover:text-white"
+                    ? "bg-secondary border-gold text-foreground font-bold shadow-sm" 
+                    : "border-transparent text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
                 }`}
               >
-                <Icon className={`h-4 w-4 ${isActive ? "text-amber-600 dark:text-gold" : "text-slate-400 dark:text-neutral-500"}`} />
+                <Icon className={`h-4 w-4 ${isActive ? "text-gold" : "text-muted-foreground"}`} />
                 <span className="text-[10px] uppercase font-black tracking-[0.2em]">{link.label}</span>
               </Link>
             );
@@ -135,18 +135,18 @@ export default function AdminLayout({
         </nav>
 
         {/* Footer / Theme Toggle & Actions */}
-        <div className="p-4 border-t border-slate-200 dark:border-neutral-800 space-y-2">
-           <div className="flex items-center justify-between px-4 py-2 bg-white dark:bg-black border border-slate-200 dark:border-neutral-800">
-             <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 dark:text-neutral-400">Theme</span>
+        <div className="p-4 border-t border-border space-y-2">
+           <div className="flex items-center justify-between px-4 py-2 bg-secondary border border-border">
+             <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Theme</span>
              <ThemeToggle />
            </div>
 
            <Button 
             onClick={handleSignOut}
             variant="ghost" 
-            className="w-full justify-start rounded-none px-4 py-3.5 text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-neutral-800"
+            className="w-full justify-start rounded-none px-4 py-3.5 text-muted-foreground hover:text-foreground hover:bg-secondary"
            >
-              <LogOut className="h-4 w-4 mr-3 text-slate-400 dark:text-neutral-500" />
+              <LogOut className="h-4 w-4 mr-3 text-muted-foreground" />
               <span className="text-[10px] uppercase font-black tracking-[0.2em]">End Session</span>
            </Button>
         </div>
@@ -156,9 +156,9 @@ export default function AdminLayout({
       <div className="flex-1 flex flex-col overflow-hidden">
         <AdminHeader />
         
-        <main className="flex-1 bg-slate-50 dark:bg-black overflow-y-auto relative transition-colors">
+        <main className="flex-1 bg-background overflow-y-auto relative transition-colors">
           <RouteProgressBar />
-          <div className="absolute top-0 left-0 w-1 h-full bg-slate-200 dark:bg-neutral-900/50 hidden md:block" />
+          <div className="absolute top-0 left-0 w-1 h-full bg-border hidden md:block" />
           {children}
           <PushAlertManager />
         </main>

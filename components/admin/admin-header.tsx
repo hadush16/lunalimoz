@@ -7,6 +7,7 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { isValidConvex } from "@/lib/convex/provider";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export function NotificationBell({ align = "right" }: { align?: "right" | "left" }) {
   if (!isValidConvex) {
@@ -68,11 +69,11 @@ function NotificationBellUI({
   const getNotifIcon = (type: string) => {
     switch (type) {
       case "new_booking":
-        return <CalendarDays className="h-4 w-4 text-emerald-400" />;
+        return <CalendarDays className="h-4 w-4 text-emerald-500" />;
       case "cancellation":
-        return <AlertTriangle className="h-4 w-4 text-red-400" />;
+        return <AlertTriangle className="h-4 w-4 text-destructive" />;
       case "status_update":
-        return <Check className="h-4 w-4 text-blue-400" />;
+        return <Check className="h-4 w-4 text-blue-500" />;
       default:
         return <Info className="h-4 w-4 text-gold" />;
     }
@@ -103,23 +104,23 @@ function NotificationBellUI({
     <div className="relative" ref={popupRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2.5 rounded-none border border-slate-200 dark:border-neutral-800 bg-white dark:bg-black hover:border-amber-500 dark:hover:border-gold/40 transition-all duration-300 group"
+        className="relative p-2.5 rounded-none border border-border bg-card hover:border-gold/40 transition-all duration-300 group"
         aria-label="Notifications"
       >
-        <Bell className={`h-4 w-4 transition-colors ${isOpen ? "text-amber-600 dark:text-gold" : "text-slate-500 dark:text-neutral-400 group-hover:text-amber-600 dark:group-hover:text-gold"}`} />
+        <Bell className={`h-4 w-4 transition-colors ${isOpen ? "text-gold" : "text-muted-foreground group-hover:text-gold"}`} />
         
         {unreadCount > 0 && (
-          <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center bg-gold text-black text-[9px] font-black rounded-full animate-in zoom-in duration-300">
+          <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center bg-gold text-primary-foreground text-[9px] font-black rounded-full animate-in zoom-in duration-300">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
       </button>
 
       {isOpen && (
-        <div className={`absolute ${align === "right" ? "right-0" : "left-0"} top-full mt-2 w-[min(380px,calc(100vw-2rem))] bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-2xl shadow-black/20 dark:shadow-black/50 z-50 animate-in slide-in-from-top-2 fade-in duration-200`}>
-          <div className="flex items-center justify-between px-4 sm:px-5 py-4 border-b border-slate-200 dark:border-neutral-800">
+        <div className={`absolute ${align === "right" ? "right-0" : "left-0"} top-full mt-2 w-[min(380px,calc(100vw-2rem))] bg-card border border-border shadow-2xl z-50 animate-in slide-in-from-top-2 fade-in duration-200`}>
+          <div className="flex items-center justify-between px-4 sm:px-5 py-4 border-b border-border">
             <div className="flex items-center gap-3">
-              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-900 dark:text-white">Notifications</h3>
+              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground">Notifications</h3>
               {unreadCount > 0 && (
                 <span className="bg-gold/10 text-gold text-[9px] font-black px-2 py-0.5 border border-gold/20">
                   {unreadCount} NEW
@@ -130,7 +131,7 @@ function NotificationBellUI({
               {unreadCount > 0 && (
                 <button
                   onClick={() => markAllAsRead({})}
-                  className="text-[9px] font-black uppercase tracking-widest text-neutral-500 hover:text-gold transition-colors flex items-center gap-1.5"
+                  className="text-[9px] font-black uppercase tracking-widest text-muted-foreground hover:text-gold transition-colors flex items-center gap-1.5"
                 >
                   <CheckCheck className="h-3 w-3" />
                   <span className="hidden sm:inline">Read All</span>
@@ -138,7 +139,7 @@ function NotificationBellUI({
               )}
               <button
                 onClick={() => setIsOpen(false)}
-                className="text-neutral-500 hover:text-white transition-colors ml-2"
+                className="text-muted-foreground hover:text-foreground transition-colors ml-2"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -148,8 +149,8 @@ function NotificationBellUI({
           <div className="max-h-[60vh] sm:max-h-[400px] overflow-y-auto overscroll-contain">
             {!notifications || notifications.length === 0 ? (
               <div className="py-16 text-center">
-                <Bell className="h-8 w-8 text-neutral-700 mx-auto mb-4" />
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-600">
+                <Bell className="h-8 w-8 text-muted-foreground opacity-40 mx-auto mb-4" />
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
                   No notifications yet
                 </p>
               </div>
@@ -173,8 +174,8 @@ function NotificationBellUI({
           </div>
 
           {notifications && notifications.length > 0 && (
-            <div className="border-t border-neutral-800 px-5 py-3">
-              <p className="text-[9px] font-bold uppercase tracking-widest text-neutral-600 text-center">
+            <div className="border-t border-border px-5 py-3">
+              <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground text-center">
                 Showing latest {notifications.length} notifications
               </p>
             </div>
@@ -184,8 +185,6 @@ function NotificationBellUI({
     </div>
   );
 }
-
-import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function AdminHeader() {
   const pathname = usePathname();
@@ -198,13 +197,15 @@ export default function AdminHeader() {
     if (pathname === "/admin/reviews") return "Feedback";
     if (pathname === "/admin/contact") return "Contact Inquiries";
     if (pathname === "/admin/settings") return "Settings";
+    if (pathname === "/admin/reports") return "Revenue Reports";
+    if (pathname === "/admin/users") return "User Management";
     return "Admin";
   };
 
   return (
-    <div className="hidden md:flex items-center justify-between px-8 py-4 border-b border-slate-200 dark:border-neutral-800 bg-white/80 dark:bg-neutral-900/50 backdrop-blur-sm sticky top-0 z-30 transition-colors">
+    <div className="hidden md:flex items-center justify-between px-8 py-4 border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-30 transition-colors">
       <div className="flex items-center gap-4">
-        <h1 className="text-[11px] font-black uppercase tracking-[0.3em] text-slate-600 dark:text-neutral-400">
+        <h1 className="text-[11px] font-black uppercase tracking-[0.3em] text-foreground">
           {getPageTitle()}
         </h1>
       </div>
@@ -235,30 +236,30 @@ function NotifItem({
 }) {
   return (
     <div
-      className={`flex items-start gap-3 sm:gap-3.5 px-4 sm:px-5 py-3.5 sm:py-4 border-b border-neutral-800/50 transition-all cursor-pointer hover:bg-neutral-800/30 ${
-        !notif.isRead ? "bg-gold/[0.03]" : ""
+      className={`flex items-start gap-3 sm:gap-3.5 px-4 sm:px-5 py-3.5 sm:py-4 border-b border-border transition-all cursor-pointer hover:bg-secondary ${
+        !notif.isRead ? "bg-gold/5" : ""
       }`}
     >
       <div className="mt-1 flex-shrink-0">
         {!notif.isRead ? (
-          <div className="w-2 h-2 rounded-full bg-gold shadow-[0_0_6px_theme(colors.gold)]" />
+          <div className="w-2 h-2 rounded-full bg-gold shadow-[0_0_6px_var(--gold)]" />
         ) : (
-          <div className="w-2 h-2 rounded-full bg-neutral-800" />
+          <div className="w-2 h-2 rounded-full bg-muted-foreground/30" />
         )}
       </div>
 
-      <div className="mt-0.5 flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-neutral-800/50 border border-neutral-700/50">
+      <div className="mt-0.5 flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-secondary border border-border">
         {getNotifIcon(notif.type)}
       </div>
 
       <div className="flex-1 min-w-0">
-        <p className={`text-xs font-bold truncate ${!notif.isRead ? "text-white" : "text-neutral-400"}`}>
+        <p className={`text-xs font-bold truncate ${!notif.isRead ? "text-foreground" : "text-muted-foreground"}`}>
           {notif.title}
         </p>
-        <p className="text-[10px] text-neutral-500 mt-0.5 line-clamp-2 leading-relaxed">
+        <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-2 leading-relaxed">
           {notif.message}
         </p>
-        <p className="text-[9px] font-bold uppercase tracking-widest text-neutral-600 mt-1.5">
+        <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground mt-1.5">
           {getTimeAgo(notif.createdAt)}
         </p>
       </div>

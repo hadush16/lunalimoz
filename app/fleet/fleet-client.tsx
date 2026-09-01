@@ -6,10 +6,14 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { 
   Users, 
-  Briefcase, 
+  Luggage, 
   Calendar, 
-  CheckCircle2
+  CheckCircle2,
+  Sparkles,
+  ArrowRight
 } from "lucide-react";
+import { motion } from "framer-motion";
+import { staggerContainer, staggerItem } from "@/lib/animations";
 
 export default function FleetClient() {
   const fleet = [
@@ -18,8 +22,9 @@ export default function FleetClient() {
       type: "Business Class",
       capacity: "3 Passengers",
       luggage: "2 Suitcases",
-      description: "The ultimate business-class experience. Our fleet of Mercedes-Benz S-Class and BMW 7-Series offers unparalleled comfort, noise isolation, and a smooth ride for the modern professional.",
-      features: ["Leather Seating", "Climate Control", "WiFi Access", "USB Charging"],
+      rate: "From $120/hr",
+      description: "The ultimate business-class experience. Our fleet of Mercedes-Benz S-Class and BMW 7-Series offers unparalleled acoustic comfort, active air suspension, and executive discretion for the modern professional.",
+      features: ["Nappa Leather Seating", "Individual Climate Zones", "Complimentary High-Speed WiFi", "Rear Device Fast-Charging", "Acoustic Noise-Canceling Glass"],
       image: "/executive_sedan.png"
     },
     {
@@ -27,8 +32,9 @@ export default function FleetClient() {
       type: "First Class",
       capacity: "6 Passengers",
       luggage: "6 Suitcases",
-      description: "Commanding presence meets uncompromising luxury. The Cadillac Escalade and Lincoln Navigator define first-class group travel with expansive interior space and state-of-the-art amenities.",
-      features: ["Heated Seats", "Premium Audio", "Privacy Glass", "Extra Legroom"],
+      rate: "From $180/hr",
+      description: "Commanding presence meets uncompromising luxury. The Cadillac Escalade and Lincoln Navigator define first-class group travel with expansive interior space, heated seats, and generous luggage volume.",
+      features: ["Heated & Ventilated Seats", "Studio Surround Audio", "Full Privacy Tinting", "Tri-Zone Climate Control", "Extended Luggage Cargo Capacity"],
       image: "/luxury_suv.png"
     },
     {
@@ -36,8 +42,9 @@ export default function FleetClient() {
       type: "Innovation Class",
       capacity: "3 Passengers",
       luggage: "2 Suitcases",
-      description: "The future of elite transit. Experience the silent, dual-motor performance of the Tesla Model S and Lucid Air, combining sustainable innovation with futuristic luxury.",
-      features: ["Glass Roof", "Silent Drive", "Zero Emissions", "Tech-Forward"],
+      rate: "From $140/hr",
+      description: "The future of elite transit. Experience the silent, dual-motor performance of the Tesla Model S and Lucid Air, combining sustainable zero-emission innovation with futuristic luxury.",
+      features: ["Panoramic Glass Roof", "Whisper-Quiet Dual Motor", "Zero Direct Tailpipe Emissions", "Active Cabin Air Filtration", "Executive Tech Interface"],
       image: "/premium_electric.png"
     },
     {
@@ -45,86 +52,110 @@ export default function FleetClient() {
       type: "Group Class",
       capacity: "14 Passengers",
       luggage: "14 Suitcases",
-      description: "Bespoke group logistics for the discerning traveler. Our custom Mercedes-Benz Sprinter vans are configured with personal lighting, captain's chairs, and dedicated luggage space.",
-      features: ["Custom Lighting", "Easy Entry", "High Ceiling", "Ample Cargo"],
+      rate: "From $220/hr",
+      description: "Bespoke group logistics for the discerning traveler. Our custom Mercedes-Benz Sprinter vans are configured with personalized ambient lighting, captain's chairs, standing headroom, and dedicated luggage space.",
+      features: ["Individual Captain Chairs", "High Standing Ceiling", "Dedicated Oversized Luggage Bay", "Bespoke Ambient Lighting", "Power Outlets at Every Seat"],
       image: "/executive_van.png"
     }
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-black text-slate-900 dark:text-white font-sans overflow-x-hidden w-full transition-colors duration-200">
+    <div className="min-h-screen bg-background text-foreground font-sans overflow-x-hidden w-full transition-colors duration-200">
       <main>
         {/* Fleet Hero */}
-        <section className="relative py-16 sm:py-24 px-4 sm:px-6 overflow-hidden bg-white dark:bg-black border-b border-slate-200 dark:border-neutral-900">
-          <div className="max-w-7xl mx-auto text-center relative z-20">
-            <h3 className="text-amber-600 dark:text-gold text-[10px] font-black uppercase tracking-[0.5em] mb-4 sm:mb-6 animate-fade-in">The Luna Collection</h3>
-            <h1 className="font-serif text-3xl sm:text-5xl md:text-7xl font-black italic uppercase text-slate-900 dark:text-white leading-tight tracking-tight">
-              Elite <span className="text-amber-600 dark:text-gold">Fleet</span>
-              <br className="hidden md:block" />
-              <span className="block sm:inline sm:ml-2">Concierge Quality</span>
+        <section className="relative py-16 sm:py-24 px-4 sm:px-6 overflow-hidden bg-secondary/40 border-b border-border transition-colors">
+          <div className="max-w-7xl mx-auto text-center relative z-20 space-y-4">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-gold/10 border border-gold/30 rounded-none">
+              <Sparkles className="h-3.5 w-3.5 text-gold" />
+              <span className="text-gold text-[10px] font-black uppercase tracking-[0.3em]">The Luna Collection</span>
+            </div>
+            <h1 className="font-serif text-3xl sm:text-5xl md:text-7xl font-black italic uppercase text-foreground leading-tight tracking-tight">
+              Executive <span className="text-gold">Fleet</span>
             </h1>
-            <p className="text-xs sm:text-sm md:text-base text-slate-600 dark:text-neutral-400 mt-6 sm:mt-8 max-w-2xl mx-auto font-medium leading-relaxed px-2 sm:px-0">
-              Every vehicle in the Luna fleet is meticulously maintained and sanitised daily to meet the highest standards of luxury and safety. Experience excellence in every mile.
+            <p className="text-xs sm:text-sm md:text-base text-muted-foreground max-w-2xl mx-auto font-medium leading-relaxed">
+              Every vehicle in the Luna Limoz fleet is meticulously maintained, commercially insured, and sanitized before every reservation to deliver the highest international standard of chauffeur service.
             </p>
           </div>
         </section>
 
         {/* Fleet Grid */}
-        <section className="py-16 sm:py-24 bg-slate-50 dark:bg-black">
+        <section className="py-16 sm:py-24 bg-background transition-colors">
           <div className="max-w-7xl mx-auto px-4 sm:px-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-10 lg:gap-16">
+            <motion.div 
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={staggerContainer}
+              className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12"
+            >
               {fleet.map((vehicle, index) => (
-                <div key={index} className="group bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 p-6 sm:p-8 flex flex-col justify-between shadow-sm hover:shadow-xl transition-all duration-300">
-                  <div>
-                    <div className="relative aspect-[16/9] bg-slate-100 dark:bg-neutral-950 border border-slate-200 dark:border-neutral-800 overflow-hidden mb-6">
+                <motion.div 
+                  key={index} 
+                  variants={staggerItem}
+                  className="group bg-card border border-border p-6 sm:p-8 flex flex-col justify-between shadow-sm hover:shadow-2xl hover:border-gold/50 transition-all duration-300 group-hover:-translate-y-1"
+                >
+                  <div className="space-y-6">
+                    <div className="relative aspect-[16/10] bg-secondary border border-border/50 overflow-hidden">
                       <Image 
                         src={vehicle.image} 
                         alt={vehicle.name} 
                         fill 
                         sizes="(max-width: 768px) 100vw, 50vw"
-                        loading="lazy"
-                        className="object-contain transition-all duration-700 group-hover:scale-105"
+                        className="object-contain p-4 transition-transform duration-700 group-hover:scale-105"
                       />
-                      <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
-                         <span className="text-amber-400 dark:text-gold text-[9px] font-black uppercase tracking-[0.3em]">{vehicle.type}</span>
+                      <div className="absolute top-3 left-3">
+                        <span className="text-gold bg-card/90 text-[8px] font-black uppercase tracking-[0.25em] px-2.5 py-1 border border-gold/30">
+                          {vehicle.type}
+                        </span>
+                      </div>
+                      <div className="absolute top-3 right-3">
+                        <span className="text-foreground bg-card/90 text-[9px] font-black uppercase tracking-wider px-2.5 py-1 border border-border">
+                          {vehicle.rate}
+                        </span>
                       </div>
                     </div>
                     
                     <div className="space-y-4">
-                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-2">
-                        <h2 className="font-serif text-2xl font-black italic uppercase text-slate-900 dark:text-white">{vehicle.name}</h2>
-                        <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-neutral-400 shrink-0">
-                          <span className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5 text-amber-600 dark:text-gold" /> {vehicle.capacity}</span>
-                          <span className="flex items-center gap-1.5"><Briefcase className="h-3.5 w-3.5 text-amber-600 dark:text-gold" /> {vehicle.luggage}</span>
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-baseline gap-2">
+                        <h2 className="font-serif text-2xl font-black italic uppercase text-foreground">{vehicle.name}</h2>
+                        <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground shrink-0">
+                          <span className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5 text-gold" /> {vehicle.capacity}</span>
+                          <span className="flex items-center gap-1.5"><Luggage className="h-3.5 w-3.5 text-gold" /> {vehicle.luggage}</span>
                         </div>
                       </div>
 
-                      <p className="text-slate-600 dark:text-neutral-400 text-xs font-medium leading-relaxed">
+                      <p className="text-muted-foreground text-xs font-medium leading-relaxed">
                         {vehicle.description}
                       </p>
 
-                      <div className="grid grid-cols-2 gap-2 pt-2">
-                        {vehicle.features.map((feat, i) => (
-                          <span key={i} className="text-[10px] font-bold text-slate-700 dark:text-neutral-300 flex items-center gap-2">
-                            <CheckCircle2 className="h-3.5 w-3.5 text-amber-600 dark:text-gold shrink-0" />
-                            {feat}
-                          </span>
-                        ))}
+                      <div className="space-y-2 pt-2 border-t border-border">
+                        <p className="text-[9px] font-black uppercase tracking-[0.25em] text-muted-foreground">
+                          Standard Amenities
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {vehicle.features.map((feat, i) => (
+                            <span key={i} className="text-[10px] font-bold text-foreground flex items-center gap-2">
+                              <CheckCircle2 className="h-3.5 w-3.5 text-gold shrink-0" />
+                              {feat}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="pt-6 mt-6 border-t border-slate-200 dark:border-neutral-800">
+                  <div className="pt-6 mt-6 border-t border-border">
                     <Link href={`/booking?car=${encodeURIComponent(vehicle.name)}`}>
-                      <Button className="w-full bg-gold hover:bg-gold-dark text-white rounded-none py-5 text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2">
+                      <Button className="w-full bg-gold hover:bg-gold-dark text-primary-foreground rounded-none py-6 text-xs font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 shadow-md">
                         <Calendar className="h-4 w-4" />
-                        Reserve This Vehicle
+                        <span>Reserve {vehicle.name}</span>
+                        <ArrowRight className="h-4 w-4" />
                       </Button>
                     </Link>
                   </div>
-                </div>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           </div>
         </section>
       </main>

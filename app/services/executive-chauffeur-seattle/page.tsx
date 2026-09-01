@@ -5,14 +5,9 @@ import { Button } from "@/components/ui/button";
 import { 
   Shield, 
   Clock, 
-  MapPin, 
-  Coffee, 
-  Wifi, 
   Lock, 
   Briefcase, 
-  PhoneCall, 
-  CheckCircle2,
-  Car
+  CheckCircle2
 } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -92,90 +87,89 @@ export default function ExecutiveChauffeurPage() {
   const benefits = [
     {
       icon: <Shield className="h-6 w-6 text-gold" />,
-      title: "Umpromising Discretion",
-      desc: "Our chauffeurs are trained in executive-level privacy and nondisclosure for your sensitive business travels."
+      title: "Uncompromising Discretion",
+      desc: "Our chauffeurs are strictly trained in executive confidentiality and nondisclosure for your sensitive business travels."
     },
     {
       icon: <Clock className="h-6 w-6 text-gold" />,
       title: "Absolute Punctuality",
-      desc: "In business, time is the only currency. We arrive 15 minutes early, every single time, without exception."
+      desc: "In business, time is the ultimate currency. We arrive early, every single time, without exception."
     },
     {
       icon: <Briefcase className="h-6 w-6 text-gold" />,
       title: "Corporate Accounts",
-      desc: "Streamlined billing and priority booking for Seattle's leading enterprises and executive teams."
+      desc: "Streamlined billing, itemized receipts, and priority dispatch for Seattle's leading executive teams."
     }
   ];
 
   const features = [
-    "Complimentary High-Speed Wi-Fi",
-    "Bottled Water & Premium Refreshments",
-    "USB & Multi-Device Charging Ports",
-    "Expert Knowledge of Seattle Traffic Patterns",
-    "Bilingual Chauffeurs Available Upon Request",
-    "Real-Time Schedule Monitoring"
+    "Complimentary High-Speed Wi-Fi & Device Charging",
+    "Bottled Water & Chilled Refreshments",
+    "Quiet Cabin Environment For Calls",
+    "Expert Knowledge Of Seattle & Eastside Traffic Patterns",
+    "Bilingual & Suit-Attired Chauffeurs",
+    "Real-Time Schedule & Flight Monitoring"
   ];
 
   return (
-    <div className="bg-black text-white min-h-screen font-sans">
+    <div className="bg-background text-foreground min-h-screen font-sans transition-colors duration-200">
       <main>
         {/* Luxury Hero Section */}
-        <section className="relative min-h-[70vh] flex items-center pt-24 overflow-hidden">
-          <Image
-            src="/fleet_black_bg.png"
-            alt="Executive chauffeur fleet"
-            fill
-            priority
-            quality={75}
-            sizes="100vw"
-            className="object-cover scale-105 z-0"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent z-[1]" />
-          <div className="absolute inset-0 bg-black/40 z-[1]" />
-
-          <div className="max-w-7xl mx-auto px-6 relative z-10 w-full">
-            <div className="max-w-3xl space-y-8">
-              <div className="inline-flex items-center gap-3 px-4 py-2 bg-gold/10 border border-gold/20 rounded-none backdrop-blur-md">
-                <Lock className="h-4 w-4 text-gold" />
-                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gold">Elite Executive Standard</span>
+        <section className="relative py-16 sm:py-28 px-4 sm:px-6 overflow-hidden bg-secondary/40 border-b border-border transition-colors">
+          <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-16">
+            <div className="flex-1 text-center lg:text-left space-y-6 z-10">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-gold/10 border border-gold/30 rounded-none">
+                <Lock className="h-3.5 w-3.5 text-gold" />
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gold">Elite Corporate Standard</span>
               </div>
               
-              <h1 className="font-serif text-4xl sm:text-6xl md:text-7xl font-black italic uppercase italic leading-[0.95] tracking-tighter">
+              <h1 className="font-serif text-3xl sm:text-5xl md:text-7xl font-black italic uppercase text-foreground leading-tight tracking-tight">
                 Executive <span className="text-gold">Chauffeur</span> <br />
                 Service Seattle
               </h1>
               
-              <p className="text-sm sm:text-lg text-neutral-300 max-w-xl font-medium leading-relaxed uppercase tracking-wider">
-                Experience the pinnacle of corporate mobility. Our dedicated executive chauffeurs provide seamless, quiet, and professional transportation across the Pacific Northwest.
+              <p className="text-xs sm:text-sm md:text-base text-muted-foreground max-w-xl mx-auto lg:mx-0 font-medium leading-relaxed">
+                Experience the pinnacle of corporate mobility. Our dedicated executive chauffeurs provide seamless, quiet, and discreet transportation across Seattle, Bellevue, and Redmond.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-4 pt-6">
-                <Link href="/booking">
-                  <Button className="w-full sm:w-auto bg-gold hover:bg-gold-dark text-white rounded-none px-10 py-7 text-[10px] font-black uppercase tracking-[0.3em] border-b-4 border-gold-dark">
+              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
+                <Link href="/booking" className="w-full sm:w-auto">
+                  <Button className="w-full sm:w-auto bg-gold hover:bg-gold-dark text-primary-foreground rounded-none px-8 py-6 text-xs font-black uppercase tracking-[0.2em] shadow-xl">
                     Reserve Your Chauffeur
                   </Button>
                 </Link>
-                <Link href="tel:+12063274411">
-                  <Button variant="outline" className="w-full sm:w-auto border-white/20 hover:border-gold hover:text-gold text-white rounded-none px-10 py-7 text-[10px] font-black uppercase tracking-[0.3em] backdrop-blur-sm">
+                <Link href="tel:+12063274411" className="w-full sm:w-auto">
+                  <Button variant="outline" className="w-full sm:w-auto border-border text-foreground hover:bg-secondary rounded-none px-8 py-6 text-xs font-black uppercase tracking-[0.2em]">
                     Corporate Concierge
                   </Button>
                 </Link>
               </div>
             </div>
+
+            <div className="flex-1 relative w-full h-[280px] sm:h-[400px] lg:h-[450px]">
+              <Image 
+                src="/fleet_black_bg.png" 
+                alt="Executive Chauffeur Fleet Seattle" 
+                fill 
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                className="object-contain grayscale hover:grayscale-0 transition-all duration-700 p-4"
+                priority
+              />
+            </div>
           </div>
         </section>
 
         {/* Core Pillars */}
-        <section className="py-24 border-b border-neutral-900">
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="grid md:grid-cols-3 gap-12">
+        <section className="py-16 sm:py-24 bg-card border-b border-border transition-colors">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6">
+            <div className="grid md:grid-cols-3 gap-8">
               {benefits.map((benefit, i) => (
-                <div key={i} className="group p-8 bg-neutral-950 border border-neutral-900 hover:border-gold/30 transition-all duration-500">
-                  <div className="mb-6 inline-block p-4 bg-neutral-900 group-hover:bg-gold transition-colors">
+                <div key={i} className="p-8 bg-secondary/50 border border-border text-center space-y-4 shadow-sm">
+                  <div className="inline-flex items-center justify-center w-12 h-12 bg-gold/10 border border-gold/30 rounded-full mx-auto">
                     {benefit.icon}
                   </div>
-                  <h3 className="font-serif text-xl font-black italic uppercase mb-4 text-white">{benefit.title}</h3>
-                  <p className="text-sm text-neutral-500 leading-relaxed font-medium uppercase tracking-[0.05em]">{benefit.desc}</p>
+                  <h3 className="font-serif text-lg font-black italic uppercase text-foreground">{benefit.title}</h3>
+                  <p className="text-xs text-muted-foreground font-medium leading-relaxed">{benefit.desc}</p>
                 </div>
               ))}
             </div>
@@ -183,72 +177,62 @@ export default function ExecutiveChauffeurPage() {
         </section>
 
         {/* Detailed Service Value */}
-        <section className="py-24 bg-neutral-950/50">
-          <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-20 items-center">
-            <div className="space-y-10">
-              <div className="space-y-4">
-                <h2 className="text-gold text-[10px] font-black uppercase tracking-[0.5em]">The Corporate Standard</h2>
-                <h3 className="font-serif text-3xl sm:text-5xl font-black italic uppercase italic tracking-tight">Your Office On The Move</h3>
+        <section className="py-16 sm:py-24 bg-secondary/30 border-b border-border transition-colors">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <span className="text-gold text-[10px] font-black uppercase tracking-[0.4em]">The Corporate Standard</span>
+                <h2 className="font-serif text-2xl sm:text-4xl font-black italic uppercase text-foreground">Your Mobile Executive Suite</h2>
               </div>
               
-              <div className="prose prose-invert prose-neutral max-w-none">
-                <p className="text-neutral-400 text-lg leading-relaxed">
-                  Navigating Seattle's traffic between Amazon HQ, the Waterfront, and Eastside tech hubs requires more than just a driver—it requires a mobile state-of-the-art office. 
+              <div className="text-muted-foreground text-xs sm:text-sm leading-relaxed space-y-3 font-medium">
+                <p>
+                  Navigating Seattle traffic between Amazon HQ, the waterfront, and Eastside tech campuses requires more than just a driver—it requires a mobile sanctuary.
                 </p>
-                <p className="text-neutral-500 font-medium">
-                  Whether you are finalizing a tech merger or preparing for a board meeting at the Columbia Center, our executive fleet is equipped to ensure your productivity never pauses.
+                <p>
+                  Whether you are finalizing a tech acquisition or preparing for a board meeting at the Columbia Center, our executive fleet is configured to ensure continuous productivity and calm.
                 </p>
               </div>
 
-              <div className="grid sm:grid-cols-2 gap-6 pt-6">
+              <div className="grid sm:grid-cols-2 gap-3 pt-2">
                 {features.map((feature, i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <CheckCircle2 className="h-4 w-4 text-gold flex-shrink-0" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-neutral-300">{feature}</span>
+                  <div key={i} className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-gold shrink-0" />
+                    <span className="text-xs font-bold text-foreground">{feature}</span>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="relative aspect-square">
-               <div className="absolute inset-0 bg-gold/10 animate-pulse" />
-               <div className="absolute inset-0 border border-neutral-800 rotate-3 group-hover:rotate-0 transition-transform duration-700" />
+            <div className="relative aspect-[4/3] bg-card border border-border overflow-hidden">
                <Image 
                  src="/fleet.png" 
-                 alt="Luxury Executive Sedan Interior" 
-                 width={600}
-                 height={600}
+                 alt="Luxury Executive Sedan Fleet" 
+                 fill
                  sizes="(max-width: 1024px) 100vw, 50vw"
                  loading="lazy"
-                 className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-1000"
+                 className="object-cover grayscale hover:grayscale-0 transition-all duration-700 p-4"
                />
-               <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-black border border-neutral-800 p-8 hidden md:flex flex-col justify-center gap-2">
-                  <p className="text-gold font-serif text-4xl font-black italic tracking-tighter">0%</p>
-                  <p className="text-[8px] font-black uppercase tracking-[0.2em] text-neutral-500">Compromise on Safety & Discretion</p>
-               </div>
             </div>
           </div>
         </section>
 
         {/* CTA Section */}
-        <section className="py-32 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gold z-0" />
-          <div className="absolute inset-0 bg-[url('/noise.png')] opacity-10 z-[1]" />
-          
-          <div className="max-w-4xl mx-auto px-6 relative z-10 text-center space-y-12 text-black">
-             <h3 className="font-serif text-4xl sm:text-6xl font-black italic uppercase tracking-tighter leading-tight">
-               ELEVATE YOUR CORPORATE <br />
-               TRAVEL STANDARDS
-             </h3>
-             <div className="flex flex-col sm:flex-row justify-center gap-6">
-               <Link href="/booking">
-                 <Button className="bg-black hover:bg-neutral-900 text-white rounded-none px-12 py-8 text-[12px] font-black uppercase tracking-[0.3em] w-full sm:w-auto shadow-2xl">
-                   Open Corporate Account
+        <section className="py-16 sm:py-24 bg-secondary text-foreground relative overflow-hidden border-t border-border">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center space-y-6">
+             <h2 className="font-serif text-2xl sm:text-4xl md:text-5xl font-black italic uppercase leading-tight text-foreground">
+               Elevate Your Corporate <br />
+               <span className="text-gradient-gold">Travel Standards</span>
+             </h2>
+             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
+               <Link href="/booking" className="w-full sm:w-auto">
+                 <Button className="bg-gold hover:bg-gold-dark text-primary-foreground rounded-none px-8 py-6 text-xs font-black uppercase tracking-widest w-full sm:w-auto shadow-xl">
+                   Reserve Executive Ride
                  </Button>
                </Link>
-                <Link href="/contact">
-                 <Button variant="outline" className="border-black text-black hover:bg-black hover:text-white rounded-none px-12 py-8 text-[12px] font-black uppercase tracking-[0.3em] w-full sm:w-auto transition-all">
-                   Contact Logistics Team
+                <Link href="/contact" className="w-full sm:w-auto">
+                 <Button variant="outline" className="border-border text-foreground hover:bg-card rounded-none px-8 py-6 text-xs font-black uppercase tracking-widest w-full sm:w-auto">
+                   Corporate Accounts
                  </Button>
                </Link>
              </div>

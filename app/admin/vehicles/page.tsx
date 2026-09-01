@@ -104,19 +104,19 @@ export default function AdminVehiclesPage() {
   };
 
   return (
-    <div className="p-4 sm:p-8 md:p-12 space-y-8 sm:space-y-12 pb-24 relative">
+    <div className="p-4 sm:p-8 md:p-12 space-y-8 sm:space-y-12 pb-24 relative bg-background text-foreground transition-colors duration-200">
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-2 sm:space-y-4 text-center md:text-left">
-          <h1 className="font-serif text-3xl sm:text-5xl font-black italic uppercase text-white tracking-tight">
+          <h1 className="font-serif text-3xl sm:text-5xl font-black italic uppercase text-foreground tracking-tight">
             Fleet <span className="text-gold">Config</span>
           </h1>
-          <p className="text-neutral-500 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em]">
+          <p className="text-muted-foreground text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em]">
             Manage vehicle classes and pricing structures
           </p>
         </div>
         <Button 
           onClick={handleAddNew}
-          className="bg-gold hover:bg-gold-dark text-white rounded-none py-5 sm:py-6 px-8 text-[10px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-3 w-full md:w-auto"
+          className="bg-gold hover:bg-gold-dark text-primary-foreground rounded-none py-5 sm:py-6 px-8 text-[10px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-3 w-full md:w-auto shadow-md"
         >
             <Plus className="h-4 w-4" />
             Add Vehicle Class
@@ -125,10 +125,10 @@ export default function AdminVehiclesPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {cars.map((car: any) => (
-           <div key={car._id} className="bg-neutral-900/50 border border-neutral-800 p-6 flex flex-col h-full group hover:border-gold/30 transition-all duration-300">
+           <div key={car._id} className="bg-card border border-border p-6 flex flex-col h-full group hover:border-gold/40 transition-all duration-300 shadow-sm">
               <div className="flex justify-between items-start mb-6">
                  <div className="min-w-0">
-                    <h3 className="font-serif text-xl font-black italic uppercase text-white truncate">{car.name}</h3>
+                    <h3 className="font-serif text-xl font-black italic uppercase text-foreground truncate">{car.name}</h3>
                     <p className="text-gold text-[10px] font-black uppercase tracking-widest mt-1">Multiplier: {car.multiplier}x</p>
                  </div>
                  <Car className="h-6 w-6 text-gold opacity-50 group-hover:opacity-100 transition-opacity shrink-0" />
@@ -136,35 +136,35 @@ export default function AdminVehiclesPage() {
               
               <div className="space-y-4 flex-1">
                   <div className="grid grid-cols-2 gap-3">
-                     <div className="bg-black/40 border border-neutral-800 p-3">
-                        <p className="text-neutral-500 text-[8px] font-black uppercase tracking-[0.2em] mb-1">Base Fare</p>
-                        <p className="text-white font-serif font-black italic text-lg tracking-tight">${car.baseFare}</p>
+                     <div className="bg-secondary/50 border border-border p-3">
+                        <p className="text-muted-foreground text-[8px] font-black uppercase tracking-[0.2em] mb-1">Base Fare</p>
+                        <p className="text-foreground font-serif font-black italic text-lg tracking-tight">${car.baseFare}</p>
                      </div>
-                     <div className="bg-black/40 border border-neutral-800 p-3">
-                        <p className="text-neutral-500 text-[8px] font-black uppercase tracking-[0.2em] mb-1">Per KM</p>
-                        <p className="text-white font-serif font-black italic text-lg tracking-tight">${car.perKmRate}</p>
+                     <div className="bg-secondary/50 border border-border p-3">
+                        <p className="text-muted-foreground text-[8px] font-black uppercase tracking-[0.2em] mb-1">Per KM</p>
+                        <p className="text-foreground font-serif font-black italic text-lg tracking-tight">${car.perKmRate}</p>
                      </div>
-                     <div className="bg-black/40 border border-neutral-800 p-3">
-                        <p className="text-neutral-500 text-[8px] font-black uppercase tracking-[0.2em] mb-1">Per Min</p>
-                        <p className="text-white font-serif font-black italic text-lg tracking-tight">${car.perMinuteRate}</p>
+                     <div className="bg-secondary/50 border border-border p-3">
+                        <p className="text-muted-foreground text-[8px] font-black uppercase tracking-[0.2em] mb-1">Per Min</p>
+                        <p className="text-foreground font-serif font-black italic text-lg tracking-tight">${car.perMinuteRate}</p>
                      </div>
-                      <div className="bg-black/40 border border-neutral-800 p-3">
-                        <p className="text-neutral-500 text-[8px] font-black uppercase tracking-[0.2em] mb-1">Hourly</p>
+                      <div className="bg-secondary/50 border border-border p-3">
+                        <p className="text-muted-foreground text-[8px] font-black uppercase tracking-[0.2em] mb-1">Hourly</p>
                         <p className="text-gold font-serif font-black italic text-lg tracking-tight">${car.hourlyRate || "—"}</p>
                       </div>
                   </div>
-                 <div className="bg-black/40 border border-neutral-800 p-3 flex justify-between items-center group/item hover:border-gold/20 transition-colors">
-                    <span className="text-neutral-500 text-[9px] font-black uppercase tracking-widest">Passenger Capacity</span>
-                    <span className="text-white font-bold text-xs uppercase tracking-widest">{car.capacity} Seats</span>
+                 <div className="bg-secondary/50 border border-border p-3 flex justify-between items-center group/item hover:border-gold/20 transition-colors">
+                    <span className="text-muted-foreground text-[9px] font-black uppercase tracking-widest">Passenger Capacity</span>
+                    <span className="text-foreground font-bold text-xs uppercase tracking-widest">{car.capacity} Seats</span>
                  </div>
-                 <p className="text-neutral-500 text-[10px] line-clamp-2 italic font-medium">
+                 <p className="text-muted-foreground text-[10px] line-clamp-2 italic font-medium">
                    {car.description}
                  </p>
               </div>
 
-               <div className="mt-6 pt-6 border-t border-neutral-800 flex flex-wrap gap-4 justify-between items-center">
+               <div className="mt-6 pt-6 border-t border-border flex flex-wrap gap-4 justify-between items-center">
                   <span className={`px-3 py-1 text-[8px] font-black uppercase tracking-widest border ${
-                    car.isActive ? "bg-emerald-950/30 text-emerald-500 border-emerald-900/50" : "bg-neutral-800/30 text-neutral-500 border-neutral-700"
+                    car.isActive ? "bg-emerald-950/30 text-emerald-500 border-emerald-900/50" : "bg-muted text-muted-foreground border-border"
                   }`}>
                      {car.isActive ? "Online" : "Offline"}
                   </span>
@@ -173,7 +173,7 @@ export default function AdminVehiclesPage() {
                       onClick={() => handleEdit(car)}
                       variant="outline" 
                       size="sm" 
-                      className="bg-transparent text-gold border-gold/30 hover:bg-gold hover:text-white rounded-none text-[9px] font-black uppercase tracking-widest"
+                      className="bg-transparent text-gold border-gold/30 hover:bg-gold hover:text-primary-foreground rounded-none text-[9px] font-black uppercase tracking-widest"
                     >
                        Edit Settings
                     </Button>
@@ -181,7 +181,7 @@ export default function AdminVehiclesPage() {
                       onClick={() => handleDelete(car)}
                       variant="outline" 
                       size="sm" 
-                      className="bg-transparent text-red-500 border-red-900/50 hover:bg-red-900 hover:text-white rounded-none text-[9px] font-black uppercase tracking-widest"
+                      className="bg-transparent text-destructive border-destructive/30 hover:bg-destructive/10 rounded-none text-[9px] font-black uppercase tracking-widest"
                     >
                        Delete
                     </Button>
@@ -193,16 +193,16 @@ export default function AdminVehiclesPage() {
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/90 backdrop-blur-sm animate-in fade-in duration-300">
-           <div className="bg-neutral-900 border border-neutral-800 w-full max-w-2xl max-h-[90vh] overflow-y-auto relative animate-in zoom-in-95 duration-300">
+           <div className="bg-card border border-border w-full max-w-2xl max-h-[90vh] overflow-y-auto relative animate-in zoom-in-95 duration-300 shadow-2xl">
               <div className="p-6 sm:p-10">
                 <div className="flex justify-between items-start mb-8">
                   <div>
-                    <h2 className="font-serif text-2xl sm:text-3xl font-black italic uppercase text-white">
+                    <h2 className="font-serif text-2xl sm:text-3xl font-black italic uppercase text-foreground">
                       {editingVehicle ? "Update" : "Define"} <span className="text-gold">Vehicle</span>
                     </h2>
-                    <p className="text-neutral-500 text-[10px] font-black uppercase tracking-widest mt-2">{editingVehicle ? "Refine fleet parameters" : "Expand the Luna collection"}</p>
+                    <p className="text-muted-foreground text-[10px] font-black uppercase tracking-widest mt-2">{editingVehicle ? "Refine fleet parameters" : "Expand the Luna collection"}</p>
                   </div>
-                  <button onClick={() => setIsModalOpen(false)} className="text-neutral-500 hover:text-gold transition-colors">
+                  <button onClick={() => setIsModalOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors">
                     <X className="h-6 w-6" />
                   </button>
                 </div>
@@ -210,65 +210,65 @@ export default function AdminVehiclesPage() {
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <label className="text-neutral-500 text-[10px] font-black uppercase tracking-widest">Display Name</label>
+                      <label className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">Display Name</label>
                       <input 
                         required
-                        className="w-full bg-black border border-neutral-800 text-white p-4 text-xs font-bold focus:border-gold outline-none transition-colors"
+                        className="w-full bg-secondary border border-border text-foreground p-4 text-xs font-bold focus:border-gold outline-none transition-colors"
                         placeholder="e.g. Executive Sedan"
                         value={formData.name}
                         onChange={(e) => setFormData({...formData, name: e.target.value})}
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-neutral-500 text-[10px] font-black uppercase tracking-widest">Multiplier (0.5 - 5.0)</label>
+                      <label className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">Multiplier (0.5 - 5.0)</label>
                       <input 
                         type="number"
                         step="0.1"
                         required
-                        className="w-full bg-black border border-neutral-800 text-white p-4 text-xs font-bold focus:border-gold outline-none transition-colors"
+                        className="w-full bg-secondary border border-border text-foreground p-4 text-xs font-bold focus:border-gold outline-none transition-colors"
                         value={formData.multiplier}
                         onChange={(e) => setFormData({...formData, multiplier: parseFloat(e.target.value)})}
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-neutral-500 text-[10px] font-black uppercase tracking-widest">Base Fare ($)</label>
+                      <label className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">Base Fare ($)</label>
                       <input 
                         type="number"
                         required
-                        className="w-full bg-black border border-neutral-800 text-white p-4 text-xs font-bold focus:border-gold outline-none transition-colors"
+                        className="w-full bg-secondary border border-border text-foreground p-4 text-xs font-bold focus:border-gold outline-none transition-colors"
                         value={formData.baseFare}
                         onChange={(e) => setFormData({...formData, baseFare: parseFloat(e.target.value)})}
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-neutral-500 text-[10px] font-black uppercase tracking-widest">Rate Per KM ($)</label>
+                      <label className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">Rate Per KM ($)</label>
                       <input 
                         type="number"
                         step="0.1"
                         required
-                        className="w-full bg-black border border-neutral-800 text-white p-4 text-xs font-bold focus:border-gold outline-none transition-colors"
+                        className="w-full bg-secondary border border-border text-foreground p-4 text-xs font-bold focus:border-gold outline-none transition-colors"
                         value={formData.perKmRate}
                         onChange={(e) => setFormData({...formData, perKmRate: parseFloat(e.target.value)})}
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-neutral-500 text-[10px] font-black uppercase tracking-widest">Rate Per Minute ($)</label>
+                      <label className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">Rate Per Minute ($)</label>
                       <input 
                         type="number"
                         step="0.1"
                         required
-                        className="w-full bg-black border border-neutral-800 text-white p-4 text-xs font-bold focus:border-gold outline-none transition-colors"
+                        className="w-full bg-secondary border border-border text-foreground p-4 text-xs font-bold focus:border-gold outline-none transition-colors"
                         value={formData.perMinuteRate}
                         onChange={(e) => setFormData({...formData, perMinuteRate: parseFloat(e.target.value)})}
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-neutral-500 text-[10px] font-black uppercase tracking-widest">Hourly Rate ($)</label>
+                      <label className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">Hourly Rate ($)</label>
                       <input 
                         type="number"
                         step="1"
                         required
-                        className="w-full bg-black border border-neutral-800 text-white p-4 text-xs font-bold focus:border-gold outline-none transition-colors"
+                        className="w-full bg-secondary border border-border text-foreground p-4 text-xs font-bold focus:border-gold outline-none transition-colors"
                         value={formData.hourlyRate}
                         onChange={(e) => setFormData({...formData, hourlyRate: parseFloat(e.target.value)})}
                       />
@@ -276,10 +276,10 @@ export default function AdminVehiclesPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-neutral-500 text-[10px] font-black uppercase tracking-widest">Public Description</label>
+                    <label className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">Public Description</label>
                     <textarea 
                       required
-                      className="w-full bg-black border border-neutral-800 text-white p-4 text-xs font-medium focus:border-gold outline-none transition-colors h-24 resize-none"
+                      className="w-full bg-secondary border border-border text-foreground p-4 text-xs font-medium focus:border-gold outline-none transition-colors h-24 resize-none"
                       placeholder="Enter premium description for customers..."
                       value={formData.description}
                       onChange={(e) => setFormData({...formData, description: e.target.value})}
@@ -288,19 +288,19 @@ export default function AdminVehiclesPage() {
 
                   <div className="grid grid-cols-2 gap-6">
                     <div className="space-y-2">
-                       <label className="text-neutral-500 text-[10px] font-black uppercase tracking-widest">Max Passengers</label>
+                       <label className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">Max Passengers</label>
                        <input 
                         type="number"
                         required
-                        className="w-full bg-black border border-neutral-800 text-white p-4 text-xs font-bold focus:border-gold outline-none transition-colors"
+                        className="w-full bg-secondary border border-border text-foreground p-4 text-xs font-bold focus:border-gold outline-none transition-colors"
                         value={formData.capacity}
                         onChange={(e) => setFormData({...formData, capacity: parseInt(e.target.value)})}
                       />
                     </div>
                     <div className="space-y-2">
-                       <label className="text-neutral-500 text-[10px] font-black uppercase tracking-widest">Status</label>
+                       <label className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">Status</label>
                        <select 
-                        className="w-full bg-black border border-neutral-800 text-white p-4 text-xs font-bold focus:border-gold outline-none transition-colors"
+                        className="w-full bg-secondary border border-border text-foreground p-4 text-xs font-bold focus:border-gold outline-none transition-colors"
                         value={formData.isActive ? "active" : "inactive"}
                         onChange={(e) => setFormData({...formData, isActive: e.target.value === "active"})}
                        >
@@ -313,7 +313,7 @@ export default function AdminVehiclesPage() {
                   <div className="pt-4 flex flex-col sm:flex-row gap-4">
                     <Button 
                       type="submit"
-                      className="bg-gold hover:bg-gold-dark text-white rounded-none py-6 text-xs font-black uppercase tracking-[0.2em] flex-1 active:scale-95 transition-transform"
+                      className="bg-gold hover:bg-gold-dark text-primary-foreground rounded-none py-6 text-xs font-black uppercase tracking-[0.2em] flex-1 active:scale-95 transition-transform shadow-md"
                     >
                       {editingVehicle ? "Save Configuration" : "Commence Fleet Addition"}
                     </Button>
@@ -321,7 +321,7 @@ export default function AdminVehiclesPage() {
                       type="button"
                       onClick={() => setIsModalOpen(false)}
                       variant="outline"
-                      className="bg-transparent border-neutral-800 text-neutral-500 hover:text-white rounded-none py-6 text-[10px] font-black uppercase tracking-widest px-8"
+                      className="bg-transparent border-border text-muted-foreground hover:text-foreground rounded-none py-6 text-[10px] font-black uppercase tracking-widest px-8"
                     >
                       Discard
                     </Button>

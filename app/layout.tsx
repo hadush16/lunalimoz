@@ -139,9 +139,9 @@ const jsonLd = [
 import { Header } from "@/components/global/header";
 import { Footer } from "@/components/global/footer";
 import { WhatsAppSupport } from "@/components/global/whatsapp-support";
+import { FloatingBookCTA } from "@/components/global/floating-book-cta";
 import { PushAlertManager } from "@/components/global/push-alert-manager";
-
-
+import { MobileBottomNav } from "@/components/navigation/mobile-bottom-nav";
 import { ThemeProvider } from "@/components/theme-provider";
 
 export default function RootLayout({
@@ -162,10 +162,12 @@ export default function RootLayout({
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
             <ConvexProvider>
               <Header />
-              <div className="flex-1">
+              <div className="flex-1 pb-16 lg:pb-0">
                 {children}
               </div>
               <Footer />
+              <MobileBottomNav />
+              <FloatingBookCTA />
               <WhatsAppSupport />
               <PushAlertManager />
             </ConvexProvider>
