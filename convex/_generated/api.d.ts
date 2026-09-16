@@ -9,15 +9,20 @@
  */
 
 import type * as actions from "../actions.js";
+import type * as audit from "../audit.js";
 import type * as auth from "../auth.js";
+import type * as cancellation from "../cancellation.js";
 import type * as carTypes from "../carTypes.js";
 import type * as contact from "../contact.js";
+import type * as discounts from "../discounts.js";
 import type * as emails from "../emails.js";
 import type * as http from "../http.js";
 import type * as migrations from "../migrations.js";
 import type * as notifications from "../notifications.js";
 import type * as payments from "../payments.js";
 import type * as payments_actions from "../payments_actions.js";
+import type * as policies from "../policies.js";
+import type * as pricing from "../pricing.js";
 import type * as push from "../push.js";
 import type * as reports from "../reports.js";
 import type * as reviews from "../reviews.js";
@@ -36,15 +41,20 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   actions: typeof actions;
+  audit: typeof audit;
   auth: typeof auth;
+  cancellation: typeof cancellation;
   carTypes: typeof carTypes;
   contact: typeof contact;
+  discounts: typeof discounts;
   emails: typeof emails;
   http: typeof http;
   migrations: typeof migrations;
   notifications: typeof notifications;
   payments: typeof payments;
   payments_actions: typeof payments_actions;
+  policies: typeof policies;
+  pricing: typeof pricing;
   push: typeof push;
   reports: typeof reports;
   reviews: typeof reviews;

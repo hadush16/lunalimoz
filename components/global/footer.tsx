@@ -127,10 +127,18 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
           <p>© 2026 Luna Limo. All rights reserved.</p>
-          <div className="flex gap-6">
+          <div className="flex flex-wrap items-center justify-center gap-6">
+            <Link href="/cancellation-policy" className="hover:text-gold transition-colors">
+              Cancellation Policy
+            </Link>
+            <Link href="/terms" className="hover:text-gold transition-colors">
+              Terms
+            </Link>
+            <Link href="/privacy" className="hover:text-gold transition-colors">
+              Privacy
+            </Link>
             <span>Seattle, WA</span>
             <span>Sea-Tac Transfers</span>
-            <span>Bellevue &amp; Eastside</span>
           </div>
         </div>
       </div>

@@ -4,11 +4,16 @@ export interface CarType {
   description: string;
   image: string;
   baseFare: number;
-  perKmRate: number;
-  perMinuteRate: number;
+  perKmRate?: number;
+  perMileRate?: number;
+  perMinuteRate?: number;
   hourlyRate?: number;
-  multiplier: number;
+  multiplier?: number;
   capacity: number;
+  luggageCapacity?: number;
+  minFare?: number;
+  minMiles?: number;
+  hourlyMin?: number;
   isActive: boolean;
   createdAt?: number;
   updatedAt?: number;
@@ -89,9 +94,12 @@ export function calculatePrice(
   minimumFare: number = 0
 ): PricingResult {
   const baseFare = carType.baseFare;
-  const distanceCharge = distanceKm * carType.perKmRate * carType.multiplier;
-  const timeCharge = durationMinutes * carType.perMinuteRate * carType.multiplier;
-  const multiplier = carType.multiplier * dynamicMultiplier;
+  const perKmRate = carType.perKmRate ?? 2.5;
+  const perMinuteRate = carType.perMinuteRate ?? 0.5;
+  const carMultiplier = carType.multiplier ?? 1.0;
+  const distanceCharge = distanceKm * perKmRate * carMultiplier;
+  const timeCharge = durationMinutes * perMinuteRate * carMultiplier;
+  const multiplier = carMultiplier * dynamicMultiplier;
 
   const subtotal = baseFare + distanceCharge + timeCharge;
   let totalPrice = Math.round(subtotal * 100) / 100;
@@ -114,7 +122,9 @@ export function calculateHourlyPrice(
   dynamicMultiplier: number = 1.0,
   minimumFare: number = 0
 ): PricingResult {
-  const hourlyCharge = hours * (carType.hourlyRate || 0) * carType.multiplier * dynamicMultiplier;
+  const carMultiplier = carType.multiplier ?? 1.0;
+  const multiplier = carMultiplier * dynamicMultiplier;
+  const hourlyCharge = hours * (carType.hourlyRate || 0) * multiplier;
   let totalPrice = Math.round(hourlyCharge * 100) / 100;
   
   if (totalPrice < minimumFare) {
@@ -125,7 +135,7 @@ export function calculateHourlyPrice(
     baseFare: 0,
     distanceCharge: 0,
     timeCharge: Math.round(hourlyCharge * 100) / 100,
-    multiplier: carType.multiplier * dynamicMultiplier,
+    multiplier,
     totalPrice,
   };
 }

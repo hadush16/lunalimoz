@@ -52,7 +52,7 @@ export default function AdminReportsPage() {
       d.avgValue.toFixed(2),
     ]);
     
-    const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+    const csv = [headers.join(","), ...rows.map((r: any) => r.join(","))].join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -66,7 +66,7 @@ export default function AdminReportsPage() {
     if (!topCustomers || topCustomers.length === 0) return;
     
     const headers = ["Name", "Email", "Phone", "Total Rides", "Total Spend", "Last Ride"];
-    const rows = topCustomers.map((c) => [
+    const rows = topCustomers.map((c: any) => [
       `"${c.name}"`,
       c.email,
       c.phone,
@@ -75,7 +75,7 @@ export default function AdminReportsPage() {
       new Date(c.lastRideDate).toLocaleDateString(),
     ]);
     
-    const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+    const csv = [headers.join(","), ...rows.map((r: any) => r.join(","))].join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");

@@ -3,7 +3,7 @@
 import { useAuthActions } from "@convex-dev/auth/react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { LayoutDashboard, Car, CalendarDays, LogOut, ShieldCheck, Menu, X, Star, Users, Settings, BarChart3, Mail } from "lucide-react";
+import { LayoutDashboard, Car, CalendarDays, LogOut, ShieldCheck, Menu, X, Star, Users, Settings, BarChart3, Mail, DollarSign, ShieldAlert, Tag, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PushAlertManager } from "@/components/global/push-alert-manager";
 import { useState } from "react";
@@ -45,10 +45,14 @@ export default function AdminLayout({
   const navLinks = [
     { href: "/admin", label: "Overview", icon: LayoutDashboard },
     { href: "/admin/bookings", label: "Reservations", icon: CalendarDays },
+    { href: "/admin/pricing", label: "Pricing & Surcharges", icon: DollarSign },
+    { href: "/admin/cancellation-rules", label: "Cancellation Tiers", icon: ShieldAlert },
+    { href: "/admin/discounts", label: "Promo Discounts", icon: Tag },
     { href: "/admin/customers", label: "Client Roster", icon: Users },
     { href: "/admin/users", label: "User Management", icon: ShieldCheck },
     { href: "/admin/reports", label: "Revenue Reports", icon: BarChart3 },
     { href: "/admin/vehicles", label: "Our Fleet", icon: Car },
+    { href: "/admin/audit-log", label: "Audit Log Trail", icon: History },
     { href: "/admin/reviews", label: "Client Feedback", icon: Star },
     { href: "/admin/contact", label: "Contact Inquiries", icon: Mail },
     { href: "/admin/settings", label: "System Config", icon: Settings },

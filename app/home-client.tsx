@@ -510,7 +510,9 @@ export default function HomeClient() {
                 },
                 {
                   q: "What is your cancellation and modification policy?",
-                  a: "Cancellations made 24 hours prior to the scheduled pickup receive a full refund. Same-day modifications can be arranged directly via our 24/7 dispatch desk."
+                  a: "Cancellations made 24+ hours before scheduled pickup incur 0% fee (100% refund). Cancellations made between 2 and 24 hours prior may be subject to up to a 50% fee. Cancellations within 2 hours, after chauffeur dispatch, or passenger no-shows incur a 100% charge.",
+                  link: "/cancellation-policy",
+                  linkLabel: "Read Full Cancellation & No-Show Policy →"
                 }
               ].map((faq, i) => (
                 <AnimatedStaggerItem key={i}>
@@ -522,6 +524,13 @@ export default function HomeClient() {
                     <p className="text-xs sm:text-sm text-muted-foreground font-medium leading-relaxed pl-8">
                       {faq.a}
                     </p>
+                    {faq.link && (
+                      <div className="pl-8 pt-1">
+                        <Link href={faq.link} className="text-[11px] font-black uppercase tracking-wider text-gold hover:underline inline-block">
+                          {faq.linkLabel}
+                        </Link>
+                      </div>
+                    )}
                   </div>
                 </AnimatedStaggerItem>
               ))}

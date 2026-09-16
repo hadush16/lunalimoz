@@ -205,7 +205,7 @@ export function LocationInput({
             const isSelected = idx === selectedIndex;
             return (
               <button
-                key={result.id || idx}
+                key={`${result.id || "loc"}-${idx}`}
                 type="button"
                 onMouseDown={(e) => {
                   e.preventDefault(); // Prevents input blur before click fires

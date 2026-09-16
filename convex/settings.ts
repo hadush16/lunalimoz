@@ -1,14 +1,21 @@
 import { v } from "convex/values";
 import { mutation, query, internalQuery } from "./_generated/server";
 
-// Default settings if none exist
 const DEFAULT_SETTINGS = {
   companyName: "Luna Limo",
   email: "concierge@lunalimo.com",
   phone: "(206) 327-4411",
   address: "1902 E Yesler way, Seattle, WA 98122",
   surgeMultiplier: 1.0,
-  minimumFare: 50.0,
+  minimumFare: 75.0,
+  baseAirportFee: 20.0,
+  meetAndGreetFee: 35.0,
+  additionalStopFee: 30.0,
+  waitingTimePerMinuteRate: 1.5,
+  complimentaryWaitMinutes: 15,
+  weekendSurgeMultiplier: 1.1,
+  holidaySurgeMultiplier: 1.25,
+  taxRatePercent: 10.25,
   notificationsEmail: true,
   updatedAt: Date.now(),
 };
@@ -36,6 +43,14 @@ export const update = mutation({
     address: v.optional(v.string()),
     surgeMultiplier: v.optional(v.number()),
     minimumFare: v.optional(v.number()),
+    baseAirportFee: v.optional(v.number()),
+    meetAndGreetFee: v.optional(v.number()),
+    additionalStopFee: v.optional(v.number()),
+    waitingTimePerMinuteRate: v.optional(v.number()),
+    complimentaryWaitMinutes: v.optional(v.number()),
+    weekendSurgeMultiplier: v.optional(v.number()),
+    holidaySurgeMultiplier: v.optional(v.number()),
+    taxRatePercent: v.optional(v.number()),
     notificationsEmail: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
@@ -43,30 +58,18 @@ export const update = mutation({
     const currentTimestamp = Date.now();
 
     if (existing) {
-      // Create an object with only the defined fields to update
       const updateData: Record<string, any> = { updatedAt: currentTimestamp };
-      if (args.companyName !== undefined) updateData.companyName = args.companyName;
-      if (args.email !== undefined) updateData.email = args.email;
-      if (args.phone !== undefined) updateData.phone = args.phone;
-      if (args.address !== undefined) updateData.address = args.address;
-      if (args.surgeMultiplier !== undefined) updateData.surgeMultiplier = args.surgeMultiplier;
-      if (args.minimumFare !== undefined) updateData.minimumFare = args.minimumFare;
-      if (args.notificationsEmail !== undefined) updateData.notificationsEmail = args.notificationsEmail;
-      
+      for (const [key, val] of Object.entries(args)) {
+        if (val !== undefined) updateData[key] = val;
+      }
       await ctx.db.patch(existing._id, updateData);
       return existing._id;
     } else {
       const insertData = {
-        companyName: args.companyName ?? DEFAULT_SETTINGS.companyName,
-        email: args.email ?? DEFAULT_SETTINGS.email,
-        phone: args.phone ?? DEFAULT_SETTINGS.phone,
-        address: args.address ?? DEFAULT_SETTINGS.address,
-        surgeMultiplier: args.surgeMultiplier ?? DEFAULT_SETTINGS.surgeMultiplier,
-        minimumFare: args.minimumFare ?? DEFAULT_SETTINGS.minimumFare,
-        notificationsEmail: args.notificationsEmail ?? DEFAULT_SETTINGS.notificationsEmail,
+        ...DEFAULT_SETTINGS,
+        ...args,
         updatedAt: currentTimestamp,
       };
-      
       return await ctx.db.insert("settings", insertData as any);
     }
   },

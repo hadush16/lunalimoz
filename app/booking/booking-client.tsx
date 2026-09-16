@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useSearchParams, useRouter } from "next/navigation";
 import {
   MapPin,
   CheckCircle,
@@ -22,7 +23,12 @@ import {
   ShieldCheck,
   Calendar,
   Info,
-  Plane
+  Plane,
+  Sparkles,
+  Tag,
+  Check,
+  AlertCircle,
+  FileText
 } from "lucide-react";
 import { LocationInput } from "@/components/booking/location-input";
 import { Card } from "@/components/ui/card";
@@ -31,6 +37,12 @@ import MapComponent from "@/components/map/map-wrapper";
 import { useRideStore } from "@/lib/store/rideStore";
 import { createCheckoutSession } from "@/lib/convex/api";
 import { calculateRouteBetween, type RouteResult } from "@/lib/tomtom/routing";
+import { formatDuration, formatDistance } from "@/lib/utils";
+import { formatPrice } from "@/lib/pricing";
+import { geocodeAddress, type SearchResult } from "@/lib/tomtom/search";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { isValidConvex } from "@/lib/convex/provider";
 
 const DEFAULT_ROUTE: RouteResult = {
   distance: 18500,
@@ -40,90 +52,80 @@ const DEFAULT_ROUTE: RouteResult = {
   coordinates: [],
   routeGeoJSON: null,
 };
-import { formatDuration, formatDistance } from "@/lib/utils";
-import { formatPrice, calculatePrice, calculateHourlyPrice } from "@/lib/pricing";
-import type { CarType } from "@/lib/pricing";
-import { useSearchParams } from "next/navigation";
-import { geocodeAddress } from "@/lib/tomtom/search";
-import type { SearchResult } from "@/lib/tomtom/search";
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
 
-const DEFAULT_CAR_TYPES: CarType[] = [
+const DEFAULT_CAR_TYPES = [
   {
-    _id: "sedan" as any,
-    name: "Executive Sedan",
-    description: "The ultimate business-class experience with Mercedes-Benz S-Class or BMW 7-Series. Optimal comfort and soundproofing.",
+    _id: "s_class" as any,
+    name: "Mercedes-Benz S-Class",
+    description: "The benchmark of luxury sedans. Handcrafted leather interior, active noise cancellation, and supreme comfort.",
     image: "/executive_sedan.png",
-    baseFare: 25,
-    perKmRate: 2.5,
-    perMinuteRate: 0.5,
-    hourlyRate: 120,
+    baseFare: 35.0,
+    perMileRate: 4.5,
+    perKmRate: 2.8,
+    perMinuteRate: 0.6,
+    hourlyRate: 135.0,
+    hourlyMin: 2,
+    minFare: 75.0,
     multiplier: 1.0,
     capacity: 3,
+    luggageCapacity: 3,
     isActive: true,
-    createdAt: Date.now(),
   },
   {
-    _id: "suv" as any,
-    name: "Luxury SUV",
-    description: "Commanding presence with Cadillac Escalade or Lincoln Navigator. First-class travel for up to 6 passengers.",
+    _id: "escalade" as any,
+    name: "Cadillac Escalade ESV",
+    description: "The pinnacle of executive SUV luxury with extended legroom and massive cargo capacity. Ideal for airport transfers.",
     image: "/luxury_suv.png",
-    baseFare: 40,
-    perKmRate: 4.5,
+    baseFare: 50.0,
+    perMileRate: 5.5,
+    perKmRate: 3.4,
     perMinuteRate: 0.8,
-    hourlyRate: 180,
-    multiplier: 1.4,
+    hourlyRate: 165.0,
+    hourlyMin: 2,
+    minFare: 95.0,
+    multiplier: 1.25,
     capacity: 6,
+    luggageCapacity: 6,
     isActive: true,
-    createdAt: Date.now(),
   },
   {
-    _id: "electric" as any,
-    name: "Premium Electric",
-    description: "Silent innovation with Tesla Model S or Lucid Air. Future-focused luxury for the modern traveler.",
-    image: "/premium_electric.png",
-    baseFare: 35,
-    perKmRate: 3.5,
-    perMinuteRate: 0.7,
-    hourlyRate: 150,
-    multiplier: 1.2,
-    capacity: 4,
+    _id: "navigator" as any,
+    name: "Lincoln Navigator L",
+    description: "American prestige with extended wheelbase, premium Revel sound system, and first-class captain chairs.",
+    image: "/fleet_black_bg.png",
+    baseFare: 50.0,
+    perMileRate: 5.5,
+    perKmRate: 3.4,
+    perMinuteRate: 0.8,
+    hourlyRate: 165.0,
+    hourlyMin: 2,
+    minFare: 95.0,
+    multiplier: 1.25,
+    capacity: 6,
+    luggageCapacity: 6,
     isActive: true,
-    createdAt: Date.now(),
   },
   {
-    _id: "van" as any,
-    name: "Executive Van",
-    description: "Custom Mercedes Sprinter with high-ceiling and captain's chairs. Luxury logistics for groups up to 14.",
+    _id: "sprinter" as any,
+    name: "Mercedes-Benz Sprinter",
+    description: "High-ceiling executive van with custom leather captain chairs and spacious luggage hold for large groups.",
     image: "/executive_van.png",
-    baseFare: 65,
-    perKmRate: 5.5,
+    baseFare: 85.0,
+    perMileRate: 7.0,
+    perKmRate: 4.35,
     perMinuteRate: 1.2,
-    hourlyRate: 250,
-    multiplier: 1.8,
+    hourlyRate: 225.0,
+    hourlyMin: 3,
+    minFare: 175.0,
+    multiplier: 1.6,
     capacity: 14,
+    luggageCapacity: 14,
     isActive: true,
-    createdAt: Date.now(),
   },
 ];
 
-interface BookingOptions {
-  passengers: number;
-  luggage: number;
-  accessible: boolean;
-  pickupDate: string;
-  pickupTime: string;
-  customerName: string;
-  customerEmail: string;
-  customerPhone: string;
-  flightDetails?: string;
-  hourlyDuration: number;
-}
-
 type ServiceType = "point_to_point" | "hourly";
-type BookingStep = "trip" | "vehicle" | "review";
-import { isValidConvex } from "@/lib/convex/provider";
+type BookingWizardStep = 1 | 2 | 3 | 4;
 
 export default function BookingClient() {
   if (!isValidConvex) {
@@ -138,10 +140,11 @@ function BookingClientConnected() {
 }
 
 function BookingClientUI({ dbCarTypes }: { dbCarTypes: any }) {
+  const router = useRouter();
   const searchParams = useSearchParams();
 
   const activeCarTypes = React.useMemo(() => {
-    const list = dbCarTypes?.filter((car: CarType) => car.isActive) || [];
+    const list = dbCarTypes?.filter((car: any) => car.isActive) || [];
     return list.length > 0 ? list : DEFAULT_CAR_TYPES;
   }, [dbCarTypes]);
 
@@ -150,41 +153,79 @@ function BookingClientUI({ dbCarTypes }: { dbCarTypes: any }) {
     destination,
     route,
     selectedCar,
-    isBooking,
-    step,
     setPickup,
     setDestination,
     setRoute,
     setSelectedCar,
     setLoadingRoute,
-    setBooking,
-    setStep,
   } = useRideStore();
 
+  const [currentStep, setCurrentStep] = React.useState<BookingWizardStep>(1);
   const [serviceType, setServiceType] = React.useState<ServiceType>("point_to_point");
 
-  const [options, setOptions] = React.useState<BookingOptions>({
-    passengers: 1,
-    luggage: 1,
-    accessible: false,
-    pickupDate: new Date().toISOString().split("T")[0],
-    pickupTime: "12:00",
-    customerName: "",
-    customerEmail: "",
-    customerPhone: "",
-    hourlyDuration: 2,
+  // Options & Add-ons state
+  const [passengers, setPassengers] = React.useState(1);
+  const [luggage, setLuggage] = React.useState(1);
+  const [accessible, setAccessible] = React.useState(false);
+  const [pickupDate, setPickupDate] = React.useState(new Date().toISOString().split("T")[0]);
+  const [pickupTime, setPickupTime] = React.useState("12:00");
+  const [hourlyDuration, setHourlyDuration] = React.useState(2);
+  const [flightNumber, setFlightNumber] = React.useState("");
+  const [specialInstructions, setSpecialInstructions] = React.useState("");
+  const [selectedServiceIds, setSelectedServiceIds] = React.useState<string[]>([]);
+  const [discountCodeInput, setDiscountCodeInput] = React.useState("");
+  const [appliedDiscountCode, setAppliedDiscountCode] = React.useState("");
+
+  // Customer Contact & Policy Acceptance
+  const [customerName, setCustomerName] = React.useState("");
+  const [customerEmail, setCustomerEmail] = React.useState("");
+  const [customerPhone, setCustomerPhone] = React.useState("");
+  const [policyAccepted, setPolicyAccepted] = React.useState(false);
+  const [showPolicyModal, setShowPolicyModal] = React.useState(false);
+
+  // Status & Error states
+  const [isRedirectingToStripe, setIsRedirectingToStripe] = React.useState(false);
+  const [errorMessage, setErrorMessage] = React.useState("");
+
+  const availableOptionalServices = useQuery(api.pricing.getAvailableServices) || [
+    { id: "meet_greet", name: "Airport Meet & Greet with Signage", price: 35.0 },
+    { id: "child_seat", name: "Child Safety Car Seat", price: 25.0 },
+    { id: "extra_stop", name: "Additional Intermediate Stop", price: 30.0 },
+    { id: "champagne", name: "Chilled Champagne & Refreshment Package", price: 75.0 },
+    { id: "luggage_assist", name: "Executive White-Glove Luggage Concierge", price: 20.0 },
+  ];
+
+  const activePolicy = useQuery(api.policies.getActivePolicy);
+
+  // Set default selected car
+  React.useEffect(() => {
+    if (!selectedCar && activeCarTypes.length > 0) {
+      setSelectedCar(activeCarTypes[0]);
+    }
+  }, [selectedCar, activeCarTypes, setSelectedCar]);
+
+  // Server quote query: updates live when route, vehicle, date, time, services, or discount change
+  const serverQuote = useQuery(api.pricing.calculateQuote, {
+    carTypeName: selectedCar?.name || "Mercedes-Benz S-Class",
+    distanceKm: route?.distanceInKm || 15.0,
+    durationMinutes: route?.durationInMinutes || 25,
+    serviceType,
+    hourlyDuration,
+    pickupDate,
+    pickupTime,
+    pickupAddress: pickup?.address?.freeformAddress,
+    destinationAddress: destination?.address?.freeformAddress,
+    selectedServiceIds,
+    discountCode: appliedDiscountCode || undefined,
   });
 
-  const [bookingStep, setBookingStep] = React.useState<BookingStep>("trip");
-  const [emailError, setEmailError] = React.useState("");
-  const [confirmError, setConfirmError] = React.useState("");
-
+  // Fetch route when locations change
   const fetchRoute = async (pickupLoc: SearchResult, destLoc: SearchResult) => {
     setLoadingRoute(true);
     try {
       const routeResult = await calculateRouteBetween(
         { lat: pickupLoc.position.lat, lng: pickupLoc.position.lon },
-        { lat: destLoc.position.lat, lng: destLoc.position.lon },
+        { lat: destLoc.position.lat, lng: destLoc.position.lon }
       );
       if (routeResult) {
         setRoute(routeResult);
@@ -198,939 +239,980 @@ function BookingClientUI({ dbCarTypes }: { dbCarTypes: any }) {
     }
   };
 
+  // URL param pre-fill on mount
   const hasInitializedFromParams = React.useRef(false);
-
   React.useEffect(() => {
     if (hasInitializedFromParams.current) return;
+    const pParam = searchParams.get("p");
+    const dParam = searchParams.get("d");
+    const dateParam = searchParams.get("date");
+    const timeParam = searchParams.get("time");
+
+    if (!pParam && !dParam && !dateParam && !timeParam) return;
+    hasInitializedFromParams.current = true;
+
+    if (dateParam) setPickupDate(dateParam);
+    if (timeParam) setPickupTime(timeParam);
 
     const initFromParams = async () => {
-      const pParam = searchParams.get("p");
-      const dParam = searchParams.get("d");
-      const dateParam = searchParams.get("date");
-      const timeParam = searchParams.get("time");
-
-      if (!pParam && !dParam && !dateParam && !timeParam) return;
-
-      hasInitializedFromParams.current = true;
-
-      setOptions(prev => ({
-        ...prev,
-        pickupDate: dateParam || prev.pickupDate,
-        pickupTime: timeParam || prev.pickupTime,
-      }));
-
       try {
         let resolvedPickup = null;
         let resolvedDestination = null;
-
         if (pParam) {
           resolvedPickup = await geocodeAddress(pParam);
-          if (resolvedPickup) {
-            setPickup(resolvedPickup);
-          }
+          if (resolvedPickup) setPickup(resolvedPickup);
         }
-
         if (dParam) {
           resolvedDestination = await geocodeAddress(dParam);
-          if (resolvedDestination) {
-            setDestination(resolvedDestination);
-          }
+          if (resolvedDestination) setDestination(resolvedDestination);
         }
-
         if (resolvedPickup && resolvedDestination) {
           await fetchRoute(resolvedPickup, resolvedDestination);
         }
-      } catch (error) {
-        console.error("Initialization from params failed:", error);
+      } catch (err) {
+        console.error("Geocoding URL params failed:", err);
       }
     };
-
     initFromParams();
   }, [searchParams]);
 
-  React.useEffect(() => {
-    if (activeCarTypes.length > 0 && !selectedCar) {
-      const carParam = searchParams.get("car");
-      if (carParam) {
-        const match = activeCarTypes.find((c: CarType) => c.name.toLowerCase() === carParam.toLowerCase());
-        if (match) {
-          setSelectedCar(match);
-          return;
-        }
-      }
-      setSelectedCar(activeCarTypes[0]);
+  const toggleOptionalService = (serviceId: string) => {
+    setSelectedServiceIds((prev) =>
+      prev.includes(serviceId) ? prev.filter((id) => id !== serviceId) : [...prev, serviceId]
+    );
+  };
+
+  const handleApplyDiscount = () => {
+    if (!discountCodeInput.trim()) return;
+    setAppliedDiscountCode(discountCodeInput.trim().toUpperCase());
+  };
+
+  const handleRemoveDiscount = () => {
+    setAppliedDiscountCode("");
+    setDiscountCodeInput("");
+  };
+
+  const handleProceedToPayment = async () => {
+    setErrorMessage("");
+
+    if (!customerName.trim()) {
+      setErrorMessage("Please enter the passenger or primary contact name.");
+      return;
     }
-  }, [activeCarTypes, selectedCar, setSelectedCar, searchParams]);
-
-  const handlePickupSelect = async (location: SearchResult | null) => {
-    setPickup(location);
-    if (location && destination) {
-      await fetchRoute(location, destination);
+    if (!customerEmail.trim() || !customerEmail.includes("@")) {
+      setErrorMessage("Please enter a valid confirmation email address.");
+      return;
     }
-  };
-
-  const handleDestinationSelect = async (location: SearchResult | null) => {
-    setDestination(location);
-    if (pickup && location) {
-      await fetchRoute(pickup, location);
+    if (!customerPhone.trim()) {
+      setErrorMessage("Please enter a valid mobile telephone number for SMS dispatch updates.");
+      return;
     }
-  };
-
-  const handleCarSelect = (car: CarType) => {
-    setSelectedCar(car);
-    if (options.passengers > car.capacity) {
-      setOptions(prev => ({ ...prev, passengers: car.capacity }));
+    if (!policyAccepted) {
+      setErrorMessage("You must read and agree to the Luna Limo Cancellation & No-Show Policy before proceeding.");
+      return;
     }
-  };
 
-  const isTripStepValid = () => {
-    if (serviceType === "hourly") {
-      return options.pickupDate && options.pickupTime;
-    }
-    return pickup && destination && options.pickupDate && options.pickupTime;
-  };
-
-  const isVehicleStepValid = () => {
-    return selectedCar !== null;
-  };
-
-  const validateEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email.trim()) {
-      setEmailError("Email is required");
-      return false;
-    }
-    if (!emailRegex.test(email)) {
-      setEmailError("Please enter a valid email address");
-      return false;
-    }
-    setEmailError("");
-    return true;
-  };
-
-  const isEmailValid = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
-  const isReviewStepValid = () => {
-    return options.customerName.trim() !== "" && isEmailValid(options.customerEmail) && options.customerPhone.trim() !== "";
-  };
-
-  const goToNextStep = () => {
-    if (bookingStep === "trip" && isTripStepValid()) {
-      if (serviceType === "point_to_point" && !route) {
-        setRoute(DEFAULT_ROUTE);
-      }
-      setBookingStep("vehicle");
-    } else if (bookingStep === "vehicle" && isVehicleStepValid()) {
-      setBookingStep("review");
-    }
-  };
-
-  const goToPreviousStep = () => {
-    if (bookingStep === "vehicle") {
-      setBookingStep("trip");
-    } else if (bookingStep === "review") {
-      setBookingStep("vehicle");
-    }
-  };
-
-  const handleConfirm = async () => {
-    if (!selectedCar || !pricing || !isReviewStepValid()) return;
-    if (serviceType === "point_to_point" && (!pickup || !destination)) return;
-
-    setConfirmError("");
-    setBooking(true);
+    setIsRedirectingToStripe(true);
 
     try {
-      const res = await fetch("/api/bookings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          customerName: options.customerName,
-          customerEmail: options.customerEmail,
-          customerPhone: options.customerPhone,
-          flightDetails: options.flightDetails || "",
-          pickupAddress: pickup?.address.freeformAddress || "Seattle-Tacoma Intl Airport (SEA)",
-          destinationAddress: destination?.address.freeformAddress || "Downtown Seattle Waterfront",
-          pickupDate: options.pickupDate,
-          pickupTime: options.pickupTime || "12:00",
-          carTypeName: selectedCar.name,
-          price: pricing.totalPrice,
-          passengers: options.passengers,
-          luggage: options.luggage,
-          serviceType,
-          hourlyDuration: serviceType === "hourly" ? options.hourlyDuration : undefined,
-          distance: currentRoute?.distanceInKm || 18.5,
-          duration: currentRoute?.durationInMinutes || 25,
-        }),
-      });
+      const selectedServicesList = availableOptionalServices.filter((s: any) =>
+        selectedServiceIds.includes(s.id)
+      );
 
-      const data = await res.json();
-      if (res.ok && data.success && data.booking) {
-        window.location.href = `/track-booking?id=${encodeURIComponent(data.booking.id)}`;
-        return;
+      const pickupCoord = pickup?.position || { lat: 47.6062, lon: -122.3321 };
+      const destCoord = destination?.position || { lat: 47.4502, lon: -122.3088 };
+
+      const checkoutData = {
+        carTypeName: selectedCar?.name || "Mercedes-Benz S-Class",
+        distance: route?.distanceInKm || 18.5,
+        duration: route?.durationInMinutes || 25,
+        serviceType,
+        hourlyDuration: serviceType === "hourly" ? hourlyDuration : undefined,
+        carTypeMultiplier: selectedCar?.multiplier || 1.0,
+        price: serverQuote?.finalAmount || 185.0,
+        customerName: customerName.trim(),
+        customerEmail: customerEmail.trim().toLowerCase(),
+        customerPhone: customerPhone.trim(),
+        pickupAddress: pickup?.address?.freeformAddress || "Seattle, WA",
+        destinationAddress:
+          serviceType === "hourly"
+            ? "Hourly Charter Service"
+            : destination?.address?.freeformAddress || "Seattle-Tacoma International Airport (SEA)",
+        pickupLat: pickupCoord.lat,
+        pickupLng: pickupCoord.lon,
+        destLat: destCoord.lat,
+        destLng: destCoord.lon,
+        passengers,
+        luggage,
+        accessible,
+        pickupDate,
+        pickupTime,
+        flightNumber: flightNumber.trim() || undefined,
+        specialInstructions: specialInstructions.trim() || undefined,
+        optionalServices: selectedServicesList,
+        discountCode: appliedDiscountCode || undefined,
+        policyAccepted: true,
+        policyVersion: activePolicy?.version || "1.0",
+      };
+
+      const result = await createCheckoutSession(checkoutData);
+
+      if (result.url) {
+        window.location.href = result.url;
       } else {
-        setConfirmError(data.error || "Failed to submit reservation.");
+        router.push("/booking/success?session_id=mock_session");
       }
-    } catch (error) {
-      console.error("Booking submission error:", error);
-      setConfirmError("Failed to submit reservation. Please try again.");
-    } finally {
-      setBooking(false);
+    } catch (err: any) {
+      console.error("Payment redirect error:", err);
+      setErrorMessage(err.message || "Failed to initiate secure checkout session. Please try again.");
+      setIsRedirectingToStripe(false);
     }
-  };
-
-  const handleReset = () => {
-    setPickup(null);
-    setDestination(null);
-    setRoute(null);
-    setSelectedCar(activeCarTypes[0] || null);
-    setStep("pickup");
-    setBookingStep("trip");
-    setServiceType("point_to_point");
-    setOptions({
-      passengers: 1,
-      luggage: 1,
-      accessible: false,
-      pickupDate: new Date().toISOString().split("T")[0],
-      pickupTime: "12:00",
-      customerName: "",
-      customerEmail: "",
-      customerPhone: "",
-      hourlyDuration: 2,
-    });
-  };
-
-  const updateOption = (
-    key: keyof BookingOptions,
-    value: string | number | boolean,
-  ) => {
-    setOptions((prev) => ({ ...prev, [key]: value }));
-  };
-
-  const adjustPassengers = (delta: number) => {
-    const maxPassengers = selectedCar?.capacity || 10;
-    setOptions(prev => ({
-      ...prev,
-      passengers: Math.max(1, Math.min(prev.passengers + delta, maxPassengers)),
-    }));
-  };
-
-  const adjustLuggage = (delta: number) => {
-    setOptions(prev => ({
-      ...prev,
-      luggage: Math.max(0, Math.min(prev.luggage + delta, 10)),
-    }));
-  };
-
-  const minimumFare = 0;
-
-  const currentRoute = route || (pickup && destination ? { distanceInKm: 18.5, durationInMinutes: 25, coordinates: [] } : null);
-
-  const pricing = selectedCar
-    ? serviceType === "hourly"
-      ? calculateHourlyPrice(selectedCar, options.hourlyDuration, 1.0, minimumFare)
-      : currentRoute
-        ? calculatePrice(selectedCar, currentRoute.distanceInKm, currentRoute.durationInMinutes, 1.0, minimumFare)
-        : null
-    : null;
-
-  if (step === "complete") {
-    return (
-      <div className="min-h-screen bg-background text-foreground font-sans overflow-x-hidden w-full transition-colors">
-        <main className="max-w-4xl mx-auto py-16 sm:py-24 px-4 sm:px-6 text-center space-y-8 animate-fade-in">
-          <div className="w-20 h-20 rounded-full bg-gold/10 flex items-center justify-center mx-auto border border-gold/30">
-            <CheckCircle className="h-10 w-10 text-gold" />
-          </div>
-          <div className="space-y-2">
-            <h2 className="font-serif text-3xl sm:text-5xl font-black italic uppercase text-foreground">
-              Reservation <span className="text-gold">Received</span>
-            </h2>
-            <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs max-w-md mx-auto">
-              Your luxury chauffeur request has been dispatched. Our concierge team is reviewing your route.
-            </p>
-          </div>
-
-          <Card className="max-w-md mx-auto p-6 sm:p-8 border-border shadow-xl bg-card text-left rounded-none space-y-6">
-            <h3 className="font-serif font-black italic uppercase text-lg pb-2 border-b border-border text-gold">
-              Trip Itinerary
-            </h3>
-            <div className="space-y-3.5 text-xs">
-              {serviceType === "point_to_point" ? (
-                <>
-                  <div className="flex justify-between gap-4">
-                    <span className="text-muted-foreground font-bold uppercase text-[9px] tracking-widest">Pickup</span>
-                    <span className="font-bold text-foreground text-right truncate max-w-[200px]">{pickup?.address.freeformAddress || "Seattle-Tacoma Intl Airport (SEA)"}</span>
-                  </div>
-                  <div className="flex justify-between gap-4">
-                    <span className="text-muted-foreground font-bold uppercase text-[9px] tracking-widest">Destination</span>
-                    <span className="font-bold text-foreground text-right truncate max-w-[200px]">{destination?.address.freeformAddress || "Downtown Seattle Waterfront"}</span>
-                  </div>
-                </>
-              ) : (
-                <div className="flex justify-between gap-4">
-                  <span className="text-muted-foreground font-bold uppercase text-[9px] tracking-widest">Service</span>
-                  <span className="font-bold text-foreground text-right">{options.hourlyDuration} Hours Charter</span>
-                </div>
-              )}
-              <div className="flex justify-between">
-                <span className="text-muted-foreground font-bold uppercase text-[9px] tracking-widest">Date &amp; Time</span>
-                <span className="font-bold text-foreground">{options.pickupDate} at {options.pickupTime}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground font-bold uppercase text-[9px] tracking-widest">Vehicle</span>
-                <span className="font-bold text-foreground italic">{selectedCar?.name}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground font-bold uppercase text-[9px] tracking-widest">Passengers / Bags</span>
-                <span className="font-bold text-foreground">{options.passengers} Passengers, {options.luggage} Bags</span>
-              </div>
-              {pricing && (
-                <div className="pt-4 border-t border-border flex justify-between items-center">
-                  <span className="text-foreground font-black uppercase text-[10px] tracking-widest">Estimated Fare</span>
-                  <span className="text-2xl font-serif font-black italic text-gold">
-                    {formatPrice(pricing.totalPrice)}
-                  </span>
-                </div>
-              )}
-            </div>
-          </Card>
-
-          <Button onClick={handleReset} className="bg-gold hover:bg-gold-dark text-primary-foreground rounded-none px-10 py-6 text-xs font-black uppercase tracking-[0.2em] shadow-lg">
-            Book Another Ride
-          </Button>
-        </main>
-      </div>
-    );
-  }
-
-  const stepTitles: Record<BookingStep, string> = {
-    trip: "1. Trip Itinerary",
-    vehicle: "2. Vehicle Selection",
-    review: "3. Review & Details",
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground font-sans overflow-x-hidden w-full pb-32 lg:pb-12 transition-colors">
-
-      {/* Stepper Header */}
-      <div className="bg-secondary/60 py-3.5 border-b border-border transition-colors">
-        <div className="max-w-7xl mx-auto px-4 md:px-6">
-          <div className="flex items-center justify-between md:justify-center gap-2 md:gap-0">
-            <Step
-              num="1"
-              title="Trip Details"
-              active={bookingStep === "trip"}
-              complete={bookingStep === "vehicle" || bookingStep === "review"}
-            />
-            <div className="flex-1 h-px bg-border md:mx-6 max-w-[80px]" />
-            <Step
-              num="2"
-              title="Select Fleet"
-              active={bookingStep === "vehicle"}
-              complete={bookingStep === "review"}
-            />
-            <div className="flex-1 h-px bg-border md:mx-6 max-w-[80px]" />
-            <Step
-              num="3"
-              title="Review & Details"
-              active={bookingStep === "review"}
-              complete={false}
-            />
+    <div className="min-h-screen bg-background text-foreground transition-colors duration-200">
+      {/* Policy Modal */}
+      {showPolicyModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+          <div className="bg-card border border-border w-full max-w-2xl max-h-[85vh] overflow-y-auto p-6 sm:p-8 shadow-2xl relative">
+            <div className="flex justify-between items-center pb-4 border-b border-border">
+              <div className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-gold" />
+                <h3 className="font-serif text-lg font-black italic uppercase text-foreground">
+                  Luna Limo Cancellation &amp; No-Show Policy
+                </h3>
+              </div>
+              <button
+                onClick={() => setShowPolicyModal(false)}
+                className="text-muted-foreground hover:text-foreground text-sm font-bold p-1"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="py-6 space-y-4 text-xs sm:text-sm text-foreground leading-relaxed whitespace-pre-wrap font-sans">
+              {activePolicy?.content}
+            </div>
+            <div className="pt-4 border-t border-border flex justify-end">
+              <Button
+                onClick={() => {
+                  setPolicyAccepted(true);
+                  setShowPolicyModal(false);
+                }}
+                className="bg-gold hover:bg-gold-dark text-primary-foreground rounded-none px-6 py-4 text-xs font-black uppercase tracking-widest shadow-md"
+              >
+                I Understand &amp; Agree
+              </Button>
+            </div>
           </div>
+        </div>
+      )}
+
+      {/* Hero / Header Section */}
+      <section className="bg-secondary/40 border-b border-border py-12 px-4 sm:px-6">
+        <div className="max-w-6xl mx-auto space-y-4 text-center md:text-left">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-gold/10 border border-gold/30 rounded-full">
+            <span className="h-2 w-2 rounded-full bg-gold animate-pulse" />
+            <span className="text-gold text-[9px] font-black uppercase tracking-widest">
+              Authoritative Reservation Engine
+            </span>
+          </div>
+          <h1 className="font-serif text-3xl sm:text-5xl font-black italic uppercase text-foreground tracking-tight">
+            Reserve Your <span className="text-gold">Chauffeur</span>
+          </h1>
+          <p className="text-xs sm:text-sm text-muted-foreground font-medium max-w-2xl">
+            Experience bespoke luxury transportation across the Greater Seattle and Puget Sound region. Guaranteed upfront rates, verified chauffeurs, and effortless Stripe checkout.
+          </p>
+        </div>
+      </section>
+
+      {/* Booking Stepper Navigation */}
+      <div className="border-b border-border bg-card/60 sticky top-16 z-30 backdrop-blur-md">
+        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between overflow-x-auto gap-2 sm:gap-4 text-xs">
+          {[
+            { step: 1, label: "1. Route & Schedule" },
+            { step: 2, label: "2. Select Vehicle" },
+            { step: 3, label: "3. Amenities & Options" },
+            { step: 4, label: "4. Review & Payment" },
+          ].map((item) => (
+            <button
+              key={item.step}
+              onClick={() => {
+                if (item.step < currentStep || (pickup && (destination || serviceType === "hourly"))) {
+                  setCurrentStep(item.step as BookingWizardStep);
+                }
+              }}
+              className={`flex items-center gap-2 px-3 py-2 rounded-none transition-all uppercase tracking-wider font-black text-[10px] whitespace-nowrap ${
+                currentStep === item.step
+                  ? "bg-gold text-primary-foreground shadow-sm"
+                  : currentStep > item.step
+                  ? "text-gold hover:text-gold-dark"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {currentStep > item.step ? <Check className="h-3 w-3" /> : null}
+              {item.label}
+            </button>
+          ))}
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto py-8 sm:py-12 px-4 sm:px-6">
-        <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 w-full max-w-full">
-          {/* Main Booking Controls */}
-          <div className="lg:col-span-7 order-first min-w-0">
-            <div className="flex items-center gap-4 mb-8">
-              {bookingStep !== "trip" && (
-                <button
-                  type="button"
-                  onClick={goToPreviousStep}
-                  className="w-10 h-10 flex items-center justify-center border border-border hover:border-gold transition-colors bg-card"
-                  aria-label="Previous step"
-                >
-                  <ArrowLeft className="h-4 w-4 text-muted-foreground" />
-                </button>
-              )}
-              <h2 className="text-xl sm:text-2xl md:text-3xl font-serif font-black italic uppercase text-foreground border-b-2 border-gold inline-block pb-1">
-                {stepTitles[bookingStep]}
-              </h2>
-            </div>
-
-            {bookingStep === "trip" && (
-              <div className="space-y-8 animate-fade-in">
-                {/* Service Type Toggle */}
-                <div className="space-y-3">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Service Category</label>
-                  <div className="grid grid-cols-2 gap-3">
+      {/* Main Booking Content */}
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          
+          {/* Left Column: Interactive Wizard Steps */}
+          <div className="lg:col-span-8 space-y-8">
+            
+            {/* STEP 1: ROUTE & SERVICE TYPE */}
+            {currentStep === 1 && (
+              <div className="bg-card border border-border p-6 sm:p-8 space-y-6 shadow-sm">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-border">
+                  <div>
+                    <h2 className="font-serif text-2xl font-black italic uppercase text-foreground">
+                      Service &amp; Itinerary
+                    </h2>
+                    <p className="text-muted-foreground text-xs font-bold uppercase tracking-wider mt-1">
+                      Choose transit mode and specify pickup location
+                    </p>
+                  </div>
+                  
+                  {/* Service Type Toggle */}
+                  <div className="flex bg-secondary p-1 border border-border">
                     <button
                       type="button"
                       onClick={() => setServiceType("point_to_point")}
-                      className={`p-4 border text-left transition-all ${
+                      className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${
                         serviceType === "point_to_point"
-                          ? "bg-card border-gold shadow-sm"
-                          : "bg-secondary/50 border-border opacity-75 hover:opacity-100"
+                          ? "bg-gold text-primary-foreground shadow-sm"
+                          : "text-muted-foreground hover:text-foreground"
                       }`}
                     >
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="font-serif font-black italic uppercase text-sm text-foreground">Point-to-Point</span>
-                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${serviceType === "point_to_point" ? "border-gold" : "border-muted-foreground"}`}>
-                          {serviceType === "point_to_point" && <div className="w-2 h-2 rounded-full bg-gold" />}
-                        </div>
-                      </div>
-                      <p className="text-[10px] text-muted-foreground font-medium">Airport transfers &amp; one-way direct travel</p>
+                      Point to Point
                     </button>
-
                     <button
                       type="button"
                       onClick={() => setServiceType("hourly")}
-                      className={`p-4 border text-left transition-all ${
+                      className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${
                         serviceType === "hourly"
-                          ? "bg-card border-gold shadow-sm"
-                          : "bg-secondary/50 border-border opacity-75 hover:opacity-100"
+                          ? "bg-gold text-primary-foreground shadow-sm"
+                          : "text-muted-foreground hover:text-foreground"
                       }`}
                     >
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="font-serif font-black italic uppercase text-sm text-foreground">Hourly Charter</span>
-                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${serviceType === "hourly" ? "border-gold" : "border-muted-foreground"}`}>
-                          {serviceType === "hourly" && <div className="w-2 h-2 rounded-full bg-gold" />}
-                        </div>
-                      </div>
-                      <p className="text-[10px] text-muted-foreground font-medium">Flexible chauffeur by the hour for events &amp; meetings</p>
+                      Hourly Charter
                     </button>
                   </div>
                 </div>
 
-                {serviceType === "point_to_point" && (
-                  <div className="space-y-6">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
-                        <MapPin className="h-3.5 w-3.5 text-gold" /> Pickup Location
+                {/* Locations */}
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">
+                      Pickup Address / Airport Terminal *
+                    </label>
+                    <LocationInput
+                      placeholder="Enter pickup address, hotel, or Sea-Tac terminal..."
+                      value={pickup}
+                      onChange={(loc: SearchResult | null) => {
+                        setPickup(loc);
+                        if (loc && destination) fetchRoute(loc, destination);
+                      }}
+                    />
+                  </div>
+
+                  {serviceType === "point_to_point" ? (
+                    <div>
+                      <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">
+                        Destination Address / Venue *
                       </label>
                       <LocationInput
-                        placeholder="Enter pickup location (e.g. SEA Airport or Hotel)"
-                        value={pickup}
-                        onChange={handlePickupSelect}
+                        placeholder="Enter destination address or Sea-Tac airport..."
+                        value={destination}
+                        onChange={(loc: SearchResult | null) => {
+                          setDestination(loc);
+                          if (pickup && loc) fetchRoute(pickup, loc);
+                        }}
                       />
                     </div>
-
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
-                        <MapPin className="h-3.5 w-3.5 text-gold" /> Drop-off Destination
+                  ) : (
+                    <div>
+                      <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">
+                        Charter Duration (Minimum 2 Hours) *
                       </label>
-                      <LocationInput
-                        placeholder="Enter destination (e.g. Bellevue, Redmond, or Address)"
-                        value={destination}
-                        onChange={handleDestinationSelect}
+                      <div className="flex items-center gap-4 bg-secondary p-4 border border-border">
+                        <button
+                          type="button"
+                          onClick={() => setHourlyDuration((h) => Math.max(2, h - 1))}
+                          className="p-2 border border-border hover:border-gold text-foreground transition-colors"
+                        >
+                          <Minus className="h-4 w-4" />
+                        </button>
+                        <span className="font-serif text-xl font-black italic text-gold min-w-[4rem] text-center">
+                          {hourlyDuration} Hours
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setHourlyDuration((h) => Math.min(24, h + 1))}
+                          className="p-2 border border-border hover:border-gold text-foreground transition-colors"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </button>
+                        <span className="text-xs text-muted-foreground uppercase font-bold ml-auto">
+                          Dedicated chauffeur at your disposal
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Date & Time */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">
+                      Pickup Date *
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="date"
+                        value={pickupDate}
+                        min={new Date().toISOString().split("T")[0]}
+                        onChange={(e) => setPickupDate(e.target.value)}
+                        className="w-full bg-secondary border border-border p-3 text-sm text-foreground focus:border-gold outline-none"
                       />
                     </div>
                   </div>
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">
+                      Pickup Time *
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="time"
+                        value={pickupTime}
+                        onChange={(e) => setPickupTime(e.target.value)}
+                        className="w-full bg-secondary border border-border p-3 text-sm text-foreground focus:border-gold outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Route Map Preview */}
+                {pickup && (destination || serviceType === "hourly") && (
+                  <div className="pt-4 space-y-2">
+                    <div className="h-56 w-full border border-border overflow-hidden relative">
+                      <MapComponent
+                        pickup={pickup?.position ? { lat: pickup.position.lat, lng: pickup.position.lon } : null}
+                        destination={destination?.position ? { lat: destination.position.lat, lng: destination.position.lon } : null}
+                        routeCoordinates={route?.coordinates}
+                      />
+                    </div>
+                    {serviceType === "point_to_point" && route && (
+                      <div className="flex justify-between text-[11px] font-bold text-muted-foreground uppercase tracking-wider px-2">
+                        <span>Distance: {formatDistance(route.distanceInKm)} ({Math.round(route.distanceInKm * 0.621371 * 10) / 10} mi)</span>
+                        <span>Est. Duration: {formatDuration(route.durationInMinutes)}</span>
+                      </div>
+                    )}
+                  </div>
                 )}
 
-                {serviceType === "hourly" && (
-                  <div className="bg-card border border-border p-6 space-y-4 shadow-sm">
-                    <div className="flex items-center gap-3">
-                      <Clock className="h-5 w-5 text-gold" />
-                      <h3 className="font-serif text-lg font-black italic uppercase text-foreground">Charter Duration</h3>
-                    </div>
-                    <p className="text-xs text-muted-foreground font-medium">
-                      Select how many hours you require dedicated chauffeur disposal. Minimum 2 hours.
+                {/* Step 1 Next Button */}
+                <div className="pt-4 flex justify-end">
+                  <Button
+                    onClick={() => {
+                      if (!pickup) {
+                        setErrorMessage("Please select a valid pickup location.");
+                        return;
+                      }
+                      if (serviceType === "point_to_point" && !destination) {
+                        setErrorMessage("Please select a valid destination location.");
+                        return;
+                      }
+                      setErrorMessage("");
+                      setCurrentStep(2);
+                    }}
+                    className="w-full sm:w-auto bg-gold hover:bg-gold-dark text-primary-foreground rounded-none py-6 px-8 text-xs font-black uppercase tracking-widest shadow-md flex items-center justify-center gap-2"
+                  >
+                    Select Fleet Vehicle
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 2: FLEET VEHICLE SELECTION */}
+            {currentStep === 2 && (
+              <div className="bg-card border border-border p-6 sm:p-8 space-y-6 shadow-sm">
+                <div className="flex justify-between items-center pb-4 border-b border-border">
+                  <div>
+                    <h2 className="font-serif text-2xl font-black italic uppercase text-foreground">
+                      Select Vehicle Class
+                    </h2>
+                    <p className="text-muted-foreground text-xs font-bold uppercase tracking-wider mt-1">
+                      Choose from our Seattle executive fleet
                     </p>
-                    <div className="flex items-center gap-4 pt-2">
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentStep(1)}
+                    className="text-[10px] font-black uppercase tracking-widest"
+                  >
+                    <ArrowLeft className="h-3 w-3 mr-1" /> Edit Itinerary
+                  </Button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {activeCarTypes.map((car: any) => {
+                    const isSelected = selectedCar?.name === car.name;
+                    return (
+                      <div
+                        key={car.name}
+                        onClick={() => setSelectedCar(car)}
+                        className={`border p-6 space-y-4 cursor-pointer transition-all relative ${
+                          isSelected
+                            ? "bg-secondary border-gold shadow-lg ring-1 ring-gold"
+                            : "bg-card border-border hover:border-gold/50"
+                        }`}
+                      >
+                        {isSelected && (
+                          <span className="absolute top-4 right-4 bg-gold text-primary-foreground text-[8px] font-black uppercase tracking-widest px-2.5 py-1">
+                            Selected Class
+                          </span>
+                        )}
+
+                        <div className="relative h-32 w-full flex items-center justify-center overflow-hidden">
+                          <Image
+                            src={car.image || "/fleet_black_bg.png"}
+                            alt={car.name}
+                            fill
+                            className="object-contain"
+                          />
+                        </div>
+
+                        <div>
+                          <h3 className="font-serif text-lg font-black italic uppercase text-foreground">
+                            {car.name}
+                          </h3>
+                          <p className="text-muted-foreground text-xs mt-1 leading-relaxed line-clamp-2 font-medium">
+                            {car.description}
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-4 text-xs text-muted-foreground font-bold border-t border-border pt-3">
+                          <span className="flex items-center gap-1">
+                            <Users className="h-3.5 w-3.5 text-gold" /> {car.capacity} Passengers
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Luggage className="h-3.5 w-3.5 text-gold" /> {car.luggageCapacity || car.capacity} Bags
+                          </span>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-2">
+                          <div>
+                            <span className="text-[9px] uppercase tracking-widest text-muted-foreground font-black block">
+                              {serviceType === "hourly" ? "Hourly Rate" : "Estimated Upfront"}
+                            </span>
+                            <span className="font-serif text-xl font-black italic text-gold">
+                              {serviceType === "hourly"
+                                ? `${formatPrice(car.hourlyRate || 150)}/hr`
+                                : formatPrice((car.baseFare || 35) + (route?.distanceInKm ? route.distanceInKm * (car.perMileRate || 4.5) : 80))}
+                            </span>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant={isSelected ? "default" : "outline"}
+                            className={`rounded-none text-[9px] font-black uppercase tracking-widest ${
+                              isSelected ? "bg-gold text-primary-foreground" : "border-border"
+                            }`}
+                          >
+                            {isSelected ? "Selected" : "Choose Vehicle"}
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="pt-4 flex justify-between">
+                  <Button
+                    variant="outline"
+                    onClick={() => setCurrentStep(1)}
+                    className="border-border text-[10px] font-black uppercase tracking-widest py-6 px-6"
+                  >
+                    <ArrowLeft className="h-4 w-4 mr-2" /> Back
+                  </Button>
+                  <Button
+                    onClick={() => setCurrentStep(3)}
+                    className="bg-gold hover:bg-gold-dark text-primary-foreground rounded-none py-6 px-8 text-xs font-black uppercase tracking-widest shadow-md flex items-center gap-2"
+                  >
+                    Configure Amenities
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 3: PASSENGERS & OPTIONAL SERVICES */}
+            {currentStep === 3 && (
+              <div className="bg-card border border-border p-6 sm:p-8 space-y-6 shadow-sm">
+                <div className="flex justify-between items-center pb-4 border-b border-border">
+                  <div>
+                    <h2 className="font-serif text-2xl font-black italic uppercase text-foreground">
+                      Passengers &amp; Bespoke Services
+                    </h2>
+                    <p className="text-muted-foreground text-xs font-bold uppercase tracking-wider mt-1">
+                      Customize your comfort and requirements
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentStep(2)}
+                    className="text-[10px] font-black uppercase tracking-widest"
+                  >
+                    <ArrowLeft className="h-3 w-3 mr-1" /> Change Vehicle
+                  </Button>
+                </div>
+
+                {/* Passenger & Luggage Selectors */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-secondary/50 p-6 border border-border">
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-3">
+                      Passenger Count (Max {selectedCar?.capacity || 6})
+                    </label>
+                    <div className="flex items-center gap-4">
                       <button
                         type="button"
-                        onClick={() => updateOption("hourlyDuration", Math.max(1, options.hourlyDuration - 1))}
-                        className="w-11 h-11 bg-secondary border border-border flex items-center justify-center text-foreground hover:border-gold transition-colors"
-                        aria-label="Decrease hours"
+                        onClick={() => setPassengers((p) => Math.max(1, p - 1))}
+                        className="p-3 border border-border hover:border-gold bg-card text-foreground transition-colors"
                       >
                         <Minus className="h-4 w-4" />
                       </button>
-                      <div className="w-20 h-11 bg-secondary border border-border flex items-center justify-center">
-                        <span className="text-base font-bold text-foreground">{options.hourlyDuration} hrs</span>
-                      </div>
+                      <span className="font-serif text-2xl font-black italic text-gold min-w-[3rem] text-center">
+                        {passengers}
+                      </span>
                       <button
                         type="button"
-                        onClick={() => updateOption("hourlyDuration", Math.min(12, options.hourlyDuration + 1))}
-                        className="w-11 h-11 bg-secondary border border-border flex items-center justify-center text-foreground hover:border-gold transition-colors"
-                        aria-label="Increase hours"
+                        onClick={() => setPassengers((p) => Math.min(selectedCar?.capacity || 6, p + 1))}
+                        className="p-3 border border-border hover:border-gold bg-card text-foreground transition-colors"
                       >
                         <Plus className="h-4 w-4" />
                       </button>
                     </div>
                   </div>
-                )}
 
-                <div className="grid sm:grid-cols-2 gap-4 sm:gap-6">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Pickup Date</label>
-                    <div className="relative">
-                      <input
-                        type="date"
-                        value={options.pickupDate}
-                        onChange={(e) => updateOption("pickupDate", e.target.value)}
-                        className="w-full bg-secondary border border-border px-4 py-3.5 text-sm font-bold text-foreground outline-none focus:border-gold transition-colors"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Pickup Time</label>
-                    <div className="relative">
-                      <input
-                        type="time"
-                        value={options.pickupTime}
-                        onChange={(e) => updateOption("pickupTime", e.target.value)}
-                        className="w-full bg-secondary border border-border px-4 py-3.5 text-sm font-bold text-foreground outline-none focus:border-gold transition-colors"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="hidden lg:flex justify-end pt-4">
-                  <Button
-                    onClick={goToNextStep}
-                    disabled={!isTripStepValid()}
-                    className="bg-gold hover:bg-gold-dark text-primary-foreground rounded-none py-6 px-8 text-xs font-black uppercase tracking-[0.2em] shadow-lg disabled:opacity-50 transition-all flex items-center gap-2"
-                  >
-                    <span>Choose Vehicle</span>
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {bookingStep === "vehicle" && (
-              <div className="space-y-8 animate-fade-in">
-                <div className="space-y-3">
-                  {activeCarTypes.map((car: CarType) => {
-                    const isSelected = selectedCar?.name === car.name;
-                    return (
-                      <button
-                        key={car.name}
-                        type="button"
-                        onClick={() => handleCarSelect(car)}
-                        className={`w-full flex items-center gap-4 sm:gap-6 p-4 sm:p-5 transition-all border text-left cursor-pointer ${
-                          isSelected 
-                            ? "bg-card border-gold border-l-4 shadow-md" 
-                            : "bg-secondary/40 border-border opacity-80 hover:opacity-100 hover:border-gold/40"
-                        }`}
-                      >
-                        <div className="w-20 sm:w-28 h-16 sm:h-20 bg-secondary flex items-center justify-center flex-shrink-0 border border-border/50 relative overflow-hidden">
-                          <Image
-                            src={car.image || "/fleet_black_bg.png"}
-                            alt={car.name}
-                            fill
-                            sizes="120px"
-                            className="object-contain p-1"
-                          />
-                        </div>
-
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <h4 className="font-serif text-base sm:text-lg font-black italic uppercase text-foreground truncate">
-                              {car.name}
-                            </h4>
-                            {isSelected && (
-                              <span className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 bg-gold/15 text-gold border border-gold/30">
-                                Selected
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-[10px] text-muted-foreground font-medium line-clamp-1 mt-0.5">
-                            {car.description}
-                          </p>
-                          <div className="flex items-center gap-4 mt-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                            <span className="flex items-center gap-1">
-                              <Users className="h-3 w-3 text-gold" /> {car.capacity} Passengers
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <Luggage className="h-3 w-3 text-gold" /> {car.capacity} Luggage
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="text-right flex-shrink-0">
-                          <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">From</p>
-                          <p className="font-serif text-lg sm:text-2xl font-black italic text-gold">
-                            {formatPrice(serviceType === "hourly" ? (car.hourlyRate || car.baseFare * 4) : car.baseFare)}
-                          </p>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {selectedCar && (
-                  <div className="bg-card border border-border p-6 space-y-4 shadow-sm">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                      Passenger &amp; Luggage Count
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-3">
+                      Luggage Bag Count (Max {selectedCar?.luggageCapacity || 6})
                     </label>
-                    <div className="grid sm:grid-cols-2 gap-4">
-                      {/* Passengers */}
-                      <div className="bg-secondary/50 border border-border p-4 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <Users className="h-5 w-5 text-gold" />
-                          <div>
-                            <p className="text-[10px] font-black uppercase tracking-widest text-foreground">Passengers</p>
-                            <p className="text-[9px] text-muted-foreground">Max {selectedCar.capacity}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => adjustPassengers(-1)}
-                            disabled={options.passengers <= 1}
-                            className="w-9 h-9 bg-secondary border border-border flex items-center justify-center text-foreground disabled:opacity-30"
-                            aria-label="Decrease passengers"
-                          >
-                            <Minus className="h-3.5 w-3.5" />
-                          </button>
-                          <div className="w-10 h-9 bg-card border border-border flex items-center justify-center font-bold text-sm text-foreground">
-                            {options.passengers}
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => adjustPassengers(1)}
-                            disabled={options.passengers >= selectedCar.capacity}
-                            className="w-9 h-9 bg-secondary border border-border flex items-center justify-center text-foreground disabled:opacity-30"
-                            aria-label="Increase passengers"
-                          >
-                            <Plus className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Luggage */}
-                      <div className="bg-secondary/50 border border-border p-4 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <Luggage className="h-5 w-5 text-gold" />
-                          <div>
-                            <p className="text-[10px] font-black uppercase tracking-widest text-foreground">Luggage</p>
-                            <p className="text-[9px] text-muted-foreground">Standard bags</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => adjustLuggage(-1)}
-                            disabled={options.luggage <= 0}
-                            className="w-9 h-9 bg-secondary border border-border flex items-center justify-center text-foreground disabled:opacity-30"
-                            aria-label="Decrease luggage"
-                          >
-                            <Minus className="h-3.5 w-3.5" />
-                          </button>
-                          <div className="w-10 h-9 bg-card border border-border flex items-center justify-center font-bold text-sm text-foreground">
-                            {options.luggage}
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => adjustLuggage(1)}
-                            disabled={options.luggage >= 10}
-                            className="w-9 h-9 bg-secondary border border-border flex items-center justify-center text-foreground disabled:opacity-30"
-                            aria-label="Increase luggage"
-                          >
-                            <Plus className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
-                      </div>
+                    <div className="flex items-center gap-4">
+                      <button
+                        type="button"
+                        onClick={() => setLuggage((l) => Math.max(0, l - 1))}
+                        className="p-3 border border-border hover:border-gold bg-card text-foreground transition-colors"
+                      >
+                        <Minus className="h-4 w-4" />
+                      </button>
+                      <span className="font-serif text-2xl font-black italic text-gold min-w-[3rem] text-center">
+                        {luggage}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setLuggage((l) => Math.min(selectedCar?.luggageCapacity || 6, l + 1))}
+                        className="p-3 border border-border hover:border-gold bg-card text-foreground transition-colors"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </button>
                     </div>
                   </div>
-                )}
+                </div>
 
-                <div className="flex justify-between pt-4">
+                {/* Optional Services */}
+                <div className="space-y-4">
+                  <h3 className="text-gold text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2">
+                    <Sparkles className="h-4 w-4" /> Available Optional Amenities
+                  </h3>
+                  <div className="grid grid-cols-1 gap-3">
+                    {availableOptionalServices.map((service: any) => {
+                      const isChecked = selectedServiceIds.includes(service.id);
+                      return (
+                        <div
+                          key={service.id}
+                          onClick={() => toggleOptionalService(service.id)}
+                          className={`p-4 border flex items-center justify-between cursor-pointer transition-all ${
+                            isChecked
+                              ? "bg-secondary border-gold"
+                              : "bg-card border-border hover:border-gold/40"
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div
+                              className={`w-5 h-5 rounded-none border flex items-center justify-center ${
+                                isChecked ? "bg-gold border-gold text-primary-foreground" : "border-border"
+                              }`}
+                            >
+                              {isChecked && <Check className="h-3.5 w-3.5" />}
+                            </div>
+                            <span className="text-sm font-bold text-foreground">{service.name}</span>
+                          </div>
+                          <span className="font-serif text-sm font-black italic text-gold">
+                            +{formatPrice(service.price)}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Flight Number & Special Instructions */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 flex items-center gap-1.5">
+                      <Plane className="h-3 w-3 text-gold" /> Flight Number (For Airport Pickups)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. AS 1245 / DL 842"
+                      value={flightNumber}
+                      onChange={(e) => setFlightNumber(e.target.value)}
+                      className="w-full bg-secondary border border-border p-3 text-sm text-foreground focus:border-gold outline-none uppercase"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">
+                      Special Chauffeur Instructions
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Gate code, child ages, preferred route..."
+                      value={specialInstructions}
+                      onChange={(e) => setSpecialInstructions(e.target.value)}
+                      className="w-full bg-secondary border border-border p-3 text-sm text-foreground focus:border-gold outline-none"
+                    />
+                  </div>
+                </div>
+
+                {/* Promo Discount Code */}
+                <div className="p-4 bg-secondary/40 border border-border space-y-2">
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+                    <Tag className="h-3 w-3 text-gold" /> Promotional Discount Code
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="ENTER PROMO CODE (e.g. LUNA10)"
+                      value={discountCodeInput}
+                      onChange={(e) => setDiscountCodeInput(e.target.value.toUpperCase())}
+                      className="flex-1 bg-secondary border border-border p-3 text-xs text-foreground focus:border-gold outline-none uppercase font-bold"
+                    />
+                    {appliedDiscountCode ? (
+                      <Button
+                        type="button"
+                        onClick={handleRemoveDiscount}
+                        variant="outline"
+                        className="text-[9px] font-black uppercase border-destructive/40 text-destructive rounded-none px-4"
+                      >
+                        Remove
+                      </Button>
+                    ) : (
+                      <Button
+                        type="button"
+                        onClick={handleApplyDiscount}
+                        className="bg-gold hover:bg-gold-dark text-primary-foreground rounded-none text-[9px] font-black uppercase tracking-widest px-6"
+                      >
+                        Apply Code
+                      </Button>
+                    )}
+                  </div>
+                  {serverQuote?.discountAmount ? (
+                    <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1 mt-1">
+                      <Check className="h-3 w-3" /> Code &quot;{serverQuote.discountCode}&quot; applied (-{formatPrice(serverQuote.discountAmount)})
+                    </p>
+                  ) : null}
+                </div>
+
+                <div className="pt-4 flex justify-between">
                   <Button
-                    onClick={goToPreviousStep}
                     variant="outline"
-                    className="border-border text-foreground rounded-none py-6 px-6 text-xs font-black uppercase tracking-[0.2em] flex items-center gap-2"
+                    onClick={() => setCurrentStep(2)}
+                    className="border-border text-[10px] font-black uppercase tracking-widest py-6 px-6"
                   >
-                    <ArrowLeft className="h-4 w-4" />
-                    Back
+                    <ArrowLeft className="h-4 w-4 mr-2" /> Back
                   </Button>
                   <Button
-                    onClick={goToNextStep}
-                    disabled={!isVehicleStepValid()}
-                    className="hidden lg:flex bg-gold hover:bg-gold-dark text-primary-foreground rounded-none py-6 px-8 text-xs font-black uppercase tracking-[0.2em] shadow-lg disabled:opacity-50 flex items-center gap-2"
+                    onClick={() => setCurrentStep(4)}
+                    className="bg-gold hover:bg-gold-dark text-primary-foreground rounded-none py-6 px-8 text-xs font-black uppercase tracking-widest shadow-md flex items-center gap-2"
                   >
-                    <span>Review &amp; Details</span>
+                    Contact &amp; Policy Review
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
             )}
 
-            {bookingStep === "review" && (
-              <div className="space-y-8 animate-fade-in">
-                <div className="space-y-5 bg-card border border-border p-6 shadow-sm">
-                  <h3 className="font-serif text-lg font-black italic uppercase text-foreground border-b border-border pb-2">
-                    Primary Passenger Details
-                  </h3>
-                  
-                  <div className="space-y-4">
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                        <User className="h-3.5 w-3.5 text-gold" /> Full Name *
+            {/* STEP 4: CONTACT & POLICY AGREEMENT */}
+            {currentStep === 4 && (
+              <div className="bg-card border border-border p-6 sm:p-8 space-y-6 shadow-sm">
+                <div className="flex justify-between items-center pb-4 border-b border-border">
+                  <div>
+                    <h2 className="font-serif text-2xl font-black italic uppercase text-foreground">
+                      Passenger Contact &amp; Terms
+                    </h2>
+                    <p className="text-muted-foreground text-xs font-bold uppercase tracking-wider mt-1">
+                      Finalize confirmation and review cancellation policy
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentStep(3)}
+                    className="text-[10px] font-black uppercase tracking-widest"
+                  >
+                    <ArrowLeft className="h-3 w-3 mr-1" /> Edit Options
+                  </Button>
+                </div>
+
+                {/* Contact Fields */}
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 flex items-center gap-1.5">
+                      <User className="h-3 w-3 text-gold" /> Full Name (Primary Passenger / Booker) *
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Eleanor Vance"
+                      value={customerName}
+                      onChange={(e) => setCustomerName(e.target.value)}
+                      className="w-full bg-secondary border border-border p-3 text-sm text-foreground focus:border-gold outline-none font-medium"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 flex items-center gap-1.5">
+                        <Mail className="h-3 w-3 text-gold" /> Confirmation Email *
                       </label>
                       <input
-                        value={options.customerName}
-                        onChange={(e) => updateOption("customerName", e.target.value)}
-                        placeholder="e.g. Alexander Wright"
-                        className="w-full bg-secondary border border-border px-4 py-3.5 text-sm font-bold text-foreground outline-none focus:border-gold transition-colors"
+                        type="email"
+                        placeholder="eleanor@company.com"
+                        value={customerEmail}
+                        onChange={(e) => setCustomerEmail(e.target.value)}
+                        className="w-full bg-secondary border border-border p-3 text-sm text-foreground focus:border-gold outline-none font-medium"
                       />
                     </div>
-
-                    <div className="grid sm:grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                          <Mail className="h-3.5 w-3.5 text-gold" /> Email Address *
-                        </label>
-                        <input
-                          type="email"
-                          value={options.customerEmail}
-                          onChange={(e) => { setEmailError(""); updateOption("customerEmail", e.target.value); }}
-                          onBlur={() => validateEmail(options.customerEmail)}
-                          placeholder="client@executive.com"
-                          className={`w-full bg-secondary border px-4 py-3.5 text-sm font-bold text-foreground outline-none transition-colors ${emailError ? "border-red-500" : "border-border focus:border-gold"}`}
-                        />
-                        {emailError && <p className="text-[10px] font-bold text-red-500">{emailError}</p>}
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                          <Phone className="h-3.5 w-3.5 text-gold" /> Phone Number *
-                        </label>
-                        <input
-                          type="tel"
-                          value={options.customerPhone}
-                          onChange={(e) => updateOption("customerPhone", e.target.value)}
-                          placeholder="(206) 555-0199"
-                          className="w-full bg-secondary border border-border px-4 py-3.5 text-sm font-bold text-foreground outline-none focus:border-gold transition-colors"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                        <Plane className="h-3.5 w-3.5 text-gold" /> Flight Number / Notes (Optional)
+                    <div>
+                      <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 flex items-center gap-1.5">
+                        <Phone className="h-3 w-3 text-gold" /> Mobile Phone (For Driver SMS Updates) *
                       </label>
                       <input
-                        value={options.flightDetails || ""}
-                        onChange={(e) => updateOption("flightDetails", e.target.value)}
-                        placeholder="e.g. DL 1482 - Terminal B Sea-Tac"
-                        className="w-full bg-secondary border border-border px-4 py-3.5 text-sm font-bold text-foreground outline-none focus:border-gold transition-colors"
+                        type="tel"
+                        placeholder="(206) 555-0199"
+                        value={customerPhone}
+                        onChange={(e) => setCustomerPhone(e.target.value)}
+                        className="w-full bg-secondary border border-border p-3 text-sm text-foreground focus:border-gold outline-none font-medium"
                       />
                     </div>
                   </div>
                 </div>
 
-                <div className="flex justify-between pt-4">
+                {/* Official Cancellation Policy Agreement Box */}
+                <div className="p-6 bg-secondary/60 border border-border space-y-4">
+                  <div className="flex items-start gap-3">
+                    <input
+                      type="checkbox"
+                      id="policyAgreement"
+                      checked={policyAccepted}
+                      onChange={(e) => setPolicyAccepted(e.target.checked)}
+                      className="mt-1 h-5 w-5 rounded-none accent-gold cursor-pointer"
+                    />
+                    <label htmlFor="policyAgreement" className="text-xs text-foreground cursor-pointer leading-relaxed">
+                      <span className="font-bold">I have read and agree to the Luna Limo Cancellation &amp; No-Show Policy and Reservation Terms.</span>
+                      <span className="text-muted-foreground block mt-1 text-[11px]">
+                        Cancellations 24h+ prior to pickup are free (100% refund). Cancellations under 24h incur up to 50% fee. Within 2 hours, after chauffeur dispatch, or no-shows are charged 100%.
+                      </span>
+                    </label>
+                  </div>
+                  <div className="pl-8">
+                    <button
+                      type="button"
+                      onClick={() => setShowPolicyModal(true)}
+                      className="text-gold text-[10px] font-black uppercase tracking-widest underline hover:text-gold-dark"
+                    >
+                      View Full Policy Terms &amp; Conditions
+                    </button>
+                  </div>
+                </div>
+
+                {/* Error Banner */}
+                {errorMessage && (
+                  <div className="p-4 bg-destructive/10 border border-destructive/30 text-destructive text-xs font-bold flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4 shrink-0" />
+                    <span>{errorMessage}</span>
+                  </div>
+                )}
+
+                {/* Final Checkout Button */}
+                <div className="pt-4 flex flex-col sm:flex-row gap-4 justify-between items-center">
                   <Button
-                    onClick={goToPreviousStep}
                     variant="outline"
-                    className="border-border text-foreground rounded-none py-6 px-6 text-xs font-black uppercase tracking-[0.2em] flex items-center gap-2"
+                    onClick={() => setCurrentStep(3)}
+                    className="w-full sm:w-auto border-border text-[10px] font-black uppercase tracking-widest py-6 px-6"
                   >
-                    <ArrowLeft className="h-4 w-4" />
-                    Back to Fleet
+                    <ArrowLeft className="h-4 w-4 mr-2" /> Back
+                  </Button>
+
+                  <Button
+                    onClick={handleProceedToPayment}
+                    disabled={isRedirectingToStripe}
+                    className="w-full sm:w-auto bg-gold hover:bg-gold-dark text-primary-foreground rounded-none py-6 px-10 text-xs font-black uppercase tracking-[0.2em] shadow-xl flex items-center justify-center gap-3 group"
+                  >
+                    {isRedirectingToStripe ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Initiating Stripe Checkout...
+                      </>
+                    ) : (
+                      <>
+                        <ShieldCheck className="h-4 w-4 text-primary-foreground group-hover:scale-110 transition-transform" />
+                        Confirm &amp; Pay {serverQuote ? formatPrice(serverQuote.finalAmount) : "..."}
+                        <ArrowRight className="h-4 w-4" />
+                      </>
+                    )}
                   </Button>
                 </div>
               </div>
             )}
           </div>
 
-          {/* Sticky Summary Sidebar */}
-          <div className="lg:col-span-5 order-last min-w-0">
-            <div className="lg:sticky lg:top-24 self-start max-w-full">
-              <Card className="rounded-none shadow-xl border border-border overflow-hidden bg-card">
-                <div className="bg-secondary py-3.5 px-6 border-b border-border flex items-center justify-between">
-                  <h3 className="text-foreground font-black uppercase tracking-[0.25em] text-xs">
-                    Reservation Summary
+          {/* Right Column: Authoritative Server Price Summary Card */}
+          <div className="lg:col-span-4 sticky top-36">
+            <Card className="p-6 border-border bg-card shadow-xl rounded-none space-y-6">
+              <div className="pb-4 border-b border-border flex items-center justify-between">
+                <div>
+                  <span className="text-gold text-[9px] font-black uppercase tracking-widest block">
+                    Authoritative Quote
+                  </span>
+                  <h3 className="font-serif text-lg font-black italic uppercase text-foreground">
+                    {selectedCar?.name || "Vehicle"}
                   </h3>
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-gold">
-                    Luna Executive
+                </div>
+                <div className="w-10 h-10 rounded-full bg-gold/10 border border-gold/30 flex items-center justify-center text-gold">
+                  <Car className="h-5 w-5" />
+                </div>
+              </div>
+
+              {/* Itinerary Quick Summary */}
+              <div className="space-y-2 text-xs text-muted-foreground font-medium pb-4 border-b border-border">
+                <div className="flex items-start gap-2">
+                  <MapPin className="h-3.5 w-3.5 text-gold shrink-0 mt-0.5" />
+                  <span className="truncate text-foreground font-bold">
+                    {pickup?.address?.freeformAddress || "Pickup location pending"}
+                  </span>
+                </div>
+                {serviceType === "point_to_point" && (
+                  <div className="flex items-start gap-2">
+                    <MapPin className="h-3.5 w-3.5 text-gold/60 shrink-0 mt-0.5" />
+                    <span className="truncate text-foreground font-bold">
+                      {destination?.address?.freeformAddress || "Destination pending"}
+                    </span>
+                  </div>
+                )}
+                <div className="flex items-center gap-4 text-[10px] uppercase font-bold pt-1">
+                  <span className="flex items-center gap-1">
+                    <Calendar className="h-3 w-3 text-gold" /> {pickupDate}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Clock className="h-3 w-3 text-gold" /> {pickupTime}
+                  </span>
+                </div>
+              </div>
+
+              {/* Server Itemized Breakdown */}
+              <div className="space-y-2.5 text-xs">
+                <div className="flex justify-between text-muted-foreground">
+                  <span>Base Rate / Charter</span>
+                  <span className="text-foreground font-bold">
+                    {serverQuote ? formatPrice(serverQuote.baseFare + (serverQuote.serviceType === "hourly" ? (serverQuote.timeCharge || 0) : 0)) : "..."}
                   </span>
                 </div>
 
-                <div className="p-0">
-                  {serviceType === "point_to_point" && (
-                    <div className="w-full h-[180px] sm:h-[220px] border-b border-border relative overflow-hidden bg-secondary">
-                      <MapComponent
-                        pickup={pickup ? { lat: pickup.position.lat, lng: pickup.position.lon } : null}
-                        destination={destination ? { lat: destination.position.lat, lng: destination.position.lon } : null}
-                        routeCoordinates={route?.coordinates}
-                      />
-                      {!route && !pickup && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[1px] px-4">
-                          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white text-center">
-                            Enter route locations for map preview
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  <div className="p-6 space-y-6">
-                    <div className="space-y-3.5 text-xs">
-                      {serviceType === "point_to_point" ? (
-                        <>
-                          <div className="flex items-start gap-2.5">
-                            <MapPin className="h-4 w-4 text-gold shrink-0 mt-0.5" />
-                            <div>
-                              <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Pickup</p>
-                              <p className="font-bold text-foreground">{pickup?.address.freeformAddress || "Seattle-Tacoma Intl Airport (SEA)"}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-start gap-2.5">
-                            <MapPin className="h-4 w-4 text-gold shrink-0 mt-0.5" />
-                            <div>
-                              <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Destination</p>
-                              <p className="font-bold text-foreground">{destination?.address.freeformAddress || "Downtown Seattle Waterfront"}</p>
-                            </div>
-                          </div>
-                        </>
-                      ) : (
-                        <div className="flex items-center gap-2.5">
-                          <Clock className="h-4 w-4 text-gold shrink-0" />
-                          <div>
-                            <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Service Mode</p>
-                            <p className="font-bold text-foreground">{options.hourlyDuration} Hours Dedicated Charter</p>
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="flex items-start gap-2.5">
-                        <Calendar className="h-4 w-4 text-gold shrink-0 mt-0.5" />
-                        <div>
-                          <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Schedule</p>
-                          <p className="font-bold text-foreground">{options.pickupDate} at {options.pickupTime}</p>
-                        </div>
-                      </div>
-
-                      {selectedCar && (
-                        <div className="flex items-start gap-2.5">
-                          <Car className="h-4 w-4 text-gold shrink-0 mt-0.5" />
-                          <div>
-                            <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Vehicle Class</p>
-                            <p className="font-bold text-foreground italic">{selectedCar.name}</p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Price Calculation Box */}
-                    <div className="p-4 bg-secondary border border-border text-center space-y-1">
-                      <p className="text-[9px] font-black uppercase tracking-[0.25em] text-muted-foreground">
-                        Estimated Total Fare
-                      </p>
-                      <p className="font-serif font-black italic text-3xl sm:text-4xl text-gold">
-                        {pricing ? formatPrice(pricing.totalPrice) : "---"}
-                      </p>
-                      <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground">
-                        All-inclusive Seattle transit rate
-                      </p>
-                    </div>
-
-                    {/* Action in Sidebar (Desktop) */}
-                    <div className="hidden lg:block space-y-3">
-                      {confirmError && (
-                        <p className="text-[10px] font-bold text-destructive text-center uppercase tracking-wider">{confirmError}</p>
-                      )}
-
-                      {bookingStep === "review" ? (
-                        <Button
-                          onClick={handleConfirm}
-                          disabled={!isReviewStepValid() || isBooking}
-                          className="w-full bg-gold hover:bg-gold-dark text-primary-foreground rounded-none py-7 text-xs font-black uppercase tracking-[0.25em] shadow-xl disabled:opacity-50 transition-all flex items-center justify-center gap-2"
-                        >
-                          {isBooking ? (
-                            <>
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                              Transmitting...
-                            </>
-                          ) : (
-                            <>
-                              <ShieldCheck className="h-4 w-4" />
-                              Confirm Reservation
-                            </>
-                          )}
-                        </Button>
-                      ) : (
-                        <Button
-                          onClick={goToNextStep}
-                          disabled={bookingStep === "trip" ? !isTripStepValid() : !isVehicleStepValid()}
-                          className="w-full bg-gold hover:bg-gold-dark text-primary-foreground rounded-none py-7 text-xs font-black uppercase tracking-[0.25em] shadow-xl disabled:opacity-50 transition-all flex items-center justify-center gap-2"
-                        >
-                          <span>{bookingStep === "trip" ? "Continue to Fleet" : "Continue to Details"}</span>
-                          <ArrowRight className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
+                {serverQuote && serverQuote.serviceType === "point_to_point" && (
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Distance ({serverQuote.calculatedMiles} mi @ ${serverQuote.perMileRate}/mi)</span>
+                    <span className="text-foreground font-bold">
+                      {formatPrice(serverQuote.mileageCharge)}
+                    </span>
                   </div>
+                )}
+
+                {serverQuote && serverQuote.airportFee > 0 && (
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Sea-Tac Airport Access Fee</span>
+                    <span className="text-foreground font-bold">
+                      +{formatPrice(serverQuote.airportFee)}
+                    </span>
+                  </div>
+                )}
+
+                {serverQuote && serverQuote.optionalServicesFee > 0 && (
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Bespoke Amenities ({serverQuote.optionalServicesList.length})</span>
+                    <span className="text-foreground font-bold">
+                      +{formatPrice(serverQuote.optionalServicesFee)}
+                    </span>
+                  </div>
+                )}
+
+                {serverQuote && serverQuote.surgeFee > 0 && (
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Peak Weekend / Event Surcharge</span>
+                    <span className="text-foreground font-bold">
+                      +{formatPrice(serverQuote.surgeFee)}
+                    </span>
+                  </div>
+                )}
+
+                {serverQuote && serverQuote.discountAmount > 0 && (
+                  <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-bold">
+                    <span>Promo Discount ({serverQuote.discountCode})</span>
+                    <span>-{formatPrice(serverQuote.discountAmount)}</span>
+                  </div>
+                )}
+
+                {serverQuote && serverQuote.taxAmount > 0 && (
+                  <div className="flex justify-between text-muted-foreground text-[11px]">
+                    <span>Local Taxes &amp; WA Transportation Surcharge</span>
+                    <span className="text-foreground font-bold">
+                      +{formatPrice(serverQuote.taxAmount)}
+                    </span>
+                  </div>
+                )}
+
+                <div className="pt-4 border-t border-border flex justify-between items-baseline">
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block">
+                      Total Authoritative Fare
+                    </span>
+                    <span className="text-[9px] text-muted-foreground font-bold uppercase">
+                      All-Inclusive Transparent Price
+                    </span>
+                  </div>
+                  <span className="font-serif text-3xl font-black italic text-gold">
+                    {serverQuote ? formatPrice(serverQuote.finalAmount) : "..."}
+                  </span>
                 </div>
-              </Card>
-            </div>
+              </div>
+
+              {/* Security Badges */}
+              <div className="p-3 bg-secondary/50 border border-border space-y-1.5 text-[9px] text-muted-foreground font-bold uppercase tracking-wider text-center">
+                <p className="flex items-center justify-center gap-1.5 text-foreground">
+                  <ShieldCheck className="h-3.5 w-3.5 text-gold" /> 256-Bit SSL Encrypted Stripe Checkout
+                </p>
+                <p>Free Cancellation Up To 24 Hours Before Pickup</p>
+              </div>
+            </Card>
           </div>
         </div>
       </main>
-
-      {/* Mobile Sticky Bottom Action Bar */}
-      <div className="lg:hidden fixed bottom-16 left-0 right-0 bg-card/95 border-t border-border px-4 py-3 z-40 backdrop-blur-md shadow-2xl">
-        {confirmError && bookingStep === "review" && (
-          <div className="mb-2 bg-destructive/20 border border-destructive px-3 py-1 text-center">
-            <p className="text-[10px] font-bold text-destructive uppercase">{confirmError}</p>
-          </div>
-        )}
-        <div className="flex items-center justify-between gap-3 max-w-lg mx-auto">
-          <div>
-            <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Total</p>
-            <p className="font-serif font-black italic text-lg text-gold leading-tight">
-              {pricing ? formatPrice(pricing.totalPrice) : "---"}
-            </p>
-          </div>
-          <div className="flex-1 max-w-[65%]">
-            {bookingStep === "review" ? (
-              <Button
-                onClick={handleConfirm}
-                disabled={!isReviewStepValid() || isBooking}
-                className="w-full bg-gold hover:bg-gold-dark text-primary-foreground rounded-none py-5 text-[10px] font-black uppercase tracking-[0.2em] shadow-lg disabled:opacity-50"
-              >
-                {isBooking ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : "Confirm Ride"}
-              </Button>
-            ) : (
-              <Button
-                onClick={goToNextStep}
-                disabled={bookingStep === "trip" ? !isTripStepValid() : !isVehicleStepValid()}
-                className="w-full bg-gold hover:bg-gold-dark text-primary-foreground rounded-none py-5 text-[10px] font-black uppercase tracking-[0.2em] shadow-lg disabled:opacity-50 flex items-center justify-center gap-1.5"
-              >
-                <span>{bookingStep === "trip" ? "Select Fleet" : "Review"}</span>
-                <ArrowRight className="h-3.5 w-3.5" />
-              </Button>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Step({ num, title, active, complete }: { num: string; title: string; active: boolean; complete: boolean }) {
-  return (
-    <div className={`flex items-center gap-2 md:gap-2.5 transition-all ${active ? "opacity-100" : "opacity-50"}`}>
-      <div className={`w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center font-black italic text-[10px] md:text-xs border-2 ${
-        active || complete 
-          ? "bg-gold border-gold text-primary-foreground" 
-          : "border-border text-muted-foreground"
-      }`}>
-        {complete ? <CheckCircle className="h-3.5 w-3.5 md:h-4 md:w-4" /> : num}
-      </div>
-      <span className={`text-[9px] md:text-[10px] font-black uppercase tracking-widest hidden sm:block ${
-        active || complete ? "text-foreground" : "text-muted-foreground"
-      }`}>
-        {title}
-      </span>
     </div>
   );
 }

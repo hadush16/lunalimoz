@@ -45,8 +45,8 @@ export async function searchPlaces(query: string): Promise<SearchResult[]> {
       if (response.ok) {
         const data = (await response.json()) as SearchResponse;
         if (data?.results && data.results.length > 0) {
-          return data.results.map((result) => ({
-            id: result.id,
+          return data.results.map((result, idx) => ({
+            id: `${result.id}-${idx}`,
             address: result.address,
             position: result.position,
             type: result.type,
@@ -79,7 +79,7 @@ export async function searchPlaces(query: string): Promise<SearchResult[]> {
           const freeformAddress = parts.length > 0 ? parts.join(", ") : query;
 
           return {
-            id: String(props.osm_id || idx),
+            id: String(props.osm_id ? `${props.osm_id}-${idx}` : `photon-${idx}-${Date.now()}`),
             address: {
               freeformAddress,
               streetName: props.street,

@@ -16,7 +16,7 @@ export default function AdminUsersPage() {
   const [editingUser, setEditingUser] = useState<Id<"users"> | null>(null);
   const [editForm, setEditForm] = useState({ name: "", phone: "" });
 
-  const filteredUsers = users?.filter(u => {
+  const filteredUsers = users?.filter((u: any) => {
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
     return (
@@ -27,7 +27,7 @@ export default function AdminUsersPage() {
   });
 
   const handleToggleAdmin = async (userId: Id<"users">) => {
-    const user = users?.find(u => u._id === userId);
+    const user = users?.find((u: any) => u._id === userId);
     if (!user) return;
     await makeAdmin({ userId, isAdmin: !user.isAdmin });
   };
@@ -87,7 +87,7 @@ export default function AdminUsersPage() {
           </div>
         ) : (
           <div className="divide-y divide-border">
-            {filteredUsers.map((user) => (
+            {filteredUsers.map((user: any) => (
               <div key={user._id} className="p-4 md:p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4 hover:bg-secondary/40 transition-colors">
                 <div className="flex-1 min-w-0 space-y-2">
                   <div className="flex items-center gap-3">

@@ -13,7 +13,7 @@ const dmSans = DM_Sans({ subsets: ["latin"], variable: "--font-sans", weight: ["
 const dmSerif = DM_Serif_Display({ subsets: ["latin"], variable: "--font-serif", weight: "400", display: "swap" });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://lunalimoz.com"),
   applicationName: "Luna Limo",
   title: {
     default: "Luna Limo | Luxury Chauffeur & Executive Car Service Seattle",
@@ -36,11 +36,18 @@ export const metadata: Metadata = {
     siteName: "Luna Limo",
     locale: "en_US",
     type: "website",
-    images: ["/luna-logo.png"],
+    images: [
+      {
+        url: "/luna-logo.png",
+        width: 1200,
+        height: 630,
+        alt: "Luna Limo Seattle Luxury Chauffeur Service",
+      }
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Luna Limo | Luxury Chauffeur Service",
+    title: "Luna Limo | Luxury Chauffeur Service Seattle",
     description: "Experience luxury travel in Seattle with Luna Limo. Professional, reliable, and elegant.",
     images: ["/luna-logo.png"],
   },

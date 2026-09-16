@@ -18,7 +18,7 @@ const isValidUrl = Boolean(
 export const isValidConvex = isValidUrl;
 
 // Use real URL if validly configured, or a syntactically valid deployment hostname that avoids parsing crashes
-const convexUrl = isValidUrl ? rawUrl : "https://lunalimoz-app.convex.cloud";
+const convexUrl = isValidUrl ? rawUrl : "https://rapid-otter-123.convex.cloud";
 
 const convex = new ConvexReactClient(convexUrl, {
   unsavedChangesWarning: false,

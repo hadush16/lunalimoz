@@ -7,10 +7,16 @@ export const getDashboardSummary = query({
   handler: async (ctx) => {
     const rides = await ctx.db.query("rides").order("desc").take(200);
     
-    const statusCounts = {
+    const statusCounts: Record<string, number> = {
       pending: 0,
+      awaiting_payment: 0,
       confirmed: 0,
+      chauffeur_assigned: 0,
+      dispatched: 0,
+      in_progress: 0,
+      completed: 0,
       cancelled: 0,
+      no_show: 0,
     };
     
     let totalRevenue = 0;
@@ -18,7 +24,7 @@ export const getDashboardSummary = query({
     const bookingsByDate: Record<string, number> = {};
 
     for (const ride of rides) {
-      statusCounts[ride.status]++;
+      statusCounts[ride.status] = (statusCounts[ride.status] || 0) + 1;
       
       const dateKey = new Date(ride.createdAt).toISOString().split('T')[0];
       
