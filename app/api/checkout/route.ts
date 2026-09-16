@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe, isLiveStripeConfigured } from "@/lib/stripe/server";
+import { saveBookingRecord } from "@/lib/bookings/storage";
 
 export async function POST(req: NextRequest) {
   try {
@@ -46,23 +47,40 @@ export async function POST(req: NextRequest) {
             pickupAddress: data.pickupAddress || "",
             destinationAddress: data.destinationAddress || "",
             pickupDate: data.pickupDate || "",
-            pickupTime: data.pickupTime || "",
+            pickupTime: data.pickupTime || "12:00",
             carTypeName: data.carTypeName || "",
             passengers: String(data.passengers || 1),
             luggage: String(data.luggage || 1),
             serviceType: data.serviceType || "point_to_point",
             hourlyDuration: String(data.hourlyDuration || ""),
+            flightNumber: data.flightNumber || "",
             price: String(priceInDollars),
           },
         });
 
         return NextResponse.json({ url: session.url });
       } catch (stripeErr: any) {
-        console.warn("Stripe Checkout Session creation failed, using dev fallback:", stripeErr.message);
-        return NextResponse.json({
-          url: `/booking/success?session_id=mock_session_${Date.now()}&price=${priceInDollars}`,
-        });
+        console.error("Stripe Checkout Session creation error:", stripeErr);
+        return NextResponse.json(
+          { error: stripeErr.message || "Failed to create Stripe Checkout session." },
+          { status: 400 }
+        );
       }
+    }
+
+    // In production, require STRIPE_SECRET_KEY
+    const isProduction =
+      process.env.NODE_ENV === "production" ||
+      origin.includes("lunalimoz.com");
+
+    if (isProduction) {
+      return NextResponse.json(
+        {
+          error:
+            "STRIPE_SECRET_KEY is not configured on the production server. Please add your Stripe Secret Key to your hosting environment variables.",
+        },
+        { status: 500 }
+      );
     }
 
     // Development / Mock mode
@@ -83,13 +101,39 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const sessionId = searchParams.get("session_id");
 
-    if (!sessionId || sessionId.startsWith("mock_") || sessionId === "mock_session") {
+    if (!sessionId) {
+      return NextResponse.json({ error: "Session ID required" }, { status: 400 });
+    }
+
+    if (sessionId.startsWith("mock_") || sessionId === "mock_session") {
+      const mockRecord = saveBookingRecord({
+        id: `LL-${Math.random().toString(36).substring(2, 7).toUpperCase()}`,
+        customerName: "Executive Client",
+        customerEmail: "client@example.com",
+        customerPhone: "(206) 555-0199",
+        pickupAddress: "Seattle, WA",
+        destinationAddress: "Seattle-Tacoma International Airport (SEA)",
+        pickupDate: new Date().toISOString().split("T")[0],
+        pickupTime: "12:00",
+        carTypeName: "Cadillac Escalade ESV",
+        price: 185.0,
+        passengers: 4,
+        luggage: 4,
+        serviceType: "point_to_point",
+        distance: 20,
+        duration: 30,
+        status: "confirmed",
+        paymentStatus: "paid",
+        createdAt: Date.now(),
+      });
+
       return NextResponse.json({
         status: "paid",
         amount: 185.0,
         currency: "usd",
         paymentMethod: "card",
-        rideData: {},
+        rideId: mockRecord.id,
+        rideData: mockRecord,
       });
     }
 
@@ -109,22 +153,59 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ status: "unpaid" });
     }
 
+    const meta = session.metadata || {};
+    const amount = (session.amount_total ?? 0) / 100;
+    const bookingCode = `LL-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+
+    const saved = saveBookingRecord({
+      id: bookingCode,
+      customerName: meta.customerName || session.customer_details?.name || "Executive Client",
+      customerEmail: meta.customerEmail || session.customer_details?.email || "concierge@lunalimoz.com",
+      customerPhone: meta.customerPhone || session.customer_details?.phone || "(206) 327-4411",
+      flightDetails: meta.flightNumber || undefined,
+      pickupAddress: meta.pickupAddress || "Seattle, WA",
+      destinationAddress: meta.destinationAddress || "Seattle-Tacoma International Airport (SEA)",
+      pickupDate: meta.pickupDate || new Date().toISOString().split("T")[0],
+      pickupTime: meta.pickupTime || "12:00",
+      carTypeName: meta.carTypeName || "Executive Fleet",
+      price: amount,
+      passengers: Number(meta.passengers || 1),
+      luggage: Number(meta.luggage || 1),
+      serviceType: (meta.serviceType as "point_to_point" | "hourly") || "point_to_point",
+      hourlyDuration: meta.hourlyDuration ? Number(meta.hourlyDuration) : undefined,
+      distance: 20,
+      duration: 30,
+      status: "confirmed",
+      paymentStatus: "paid",
+      stripePaymentIntentId: session.payment_intent as string | undefined,
+      createdAt: Date.now(),
+    });
+
     return NextResponse.json({
       status: "paid",
-      amount: (session.amount_total ?? 0) / 100,
+      amount,
       currency: session.currency ?? "usd",
       paymentMethod: session.payment_method_types?.[0] ?? "card",
       stripePaymentIntentId: session.payment_intent as string | null,
-      rideData: session.metadata || {},
+      rideId: saved.id,
+      rideData: {
+        ...meta,
+        customerName: saved.customerName,
+        customerEmail: saved.customerEmail,
+        customerPhone: saved.customerPhone,
+        pickupAddress: saved.pickupAddress,
+        destinationAddress: saved.destinationAddress,
+        pickupDate: saved.pickupDate,
+        pickupTime: saved.pickupTime,
+        carTypeName: saved.carTypeName,
+        price: saved.price,
+      },
     });
   } catch (err: any) {
     console.error("Session verification API error:", err);
-    return NextResponse.json({
-      status: "paid",
-      amount: 185.0,
-      currency: "usd",
-      paymentMethod: "card",
-      rideData: {},
-    });
+    return NextResponse.json(
+      { error: err.message || "Failed to verify session" },
+      { status: 500 }
+    );
   }
 }

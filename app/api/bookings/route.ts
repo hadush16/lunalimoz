@@ -192,3 +192,59 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
+export async function GET(req: NextRequest) {
+  try {
+    const rawConvexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
+    if (
+      rawConvexUrl &&
+      rawConvexUrl.startsWith("https://") &&
+      rawConvexUrl.includes(".convex.") &&
+      !rawConvexUrl.includes("rapid-otter-123")
+    ) {
+      try {
+        const response = await fetch(`${rawConvexUrl}/api/query`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ path: "rides:list", args: {} }),
+        });
+        const body = await response.json();
+        if (response.ok && body.status !== "error" && Array.isArray(body.value)) {
+          return NextResponse.json({
+            success: true,
+            bookings: body.value.map((r: any) => ({
+              id: r._id,
+              customerName: r.customerName,
+              customerEmail: r.customerEmail,
+              customerPhone: r.customerPhone,
+              flightDetails: r.flightNumber,
+              pickupAddress: r.pickupAddress,
+              destinationAddress: r.destinationAddress,
+              pickupDate: r.pickupDate,
+              pickupTime: r.pickupTime || "12:00",
+              carTypeName: r.carTypeName,
+              price: r.price,
+              passengers: r.passengers,
+              luggage: r.luggage,
+              serviceType: r.serviceType || "point_to_point",
+              hourlyDuration: r.hourlyDuration,
+              distance: r.distance,
+              duration: r.duration,
+              status: r.status === "confirmed" ? "confirmed" : r.status === "cancelled" ? "cancelled" : "pending_approval",
+              paymentStatus: r.paymentStatus || "paid",
+              createdAt: r.createdAt || Date.now(),
+            })),
+          });
+        }
+      } catch (err) {
+        console.warn("Convex rides:list fetch failed, falling back to local store:", err);
+      }
+    }
+
+    const { getStoredBookings } = await import("@/lib/bookings/storage");
+    const bookings = getStoredBookings();
+    return NextResponse.json({ success: true, bookings });
+  } catch (err: any) {
+    return NextResponse.json({ success: true, bookings: [] });
+  }
+}

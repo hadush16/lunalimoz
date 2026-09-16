@@ -102,43 +102,18 @@ export async function createCheckoutSession(data: {
   policyAccepted?: boolean;
   policyVersion?: string;
 }): Promise<{ url: string | null }> {
-  if (isConvexActive) {
-    try {
-      const response = await fetch(
-        `${rawConvexUrl}/api/run/payments_actions/createCheckoutSession`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ args: data }),
-        }
-      );
-
-      const body = await response.json();
-
-      if (response.ok && body.status !== "error") {
-        return (body.value || body) as { url: string | null };
-      }
-      console.warn("Convex checkout session creation failed, routing to Next.js API:", body);
-    } catch (err) {
-      console.warn("Convex checkout network error, routing to Next.js API:", err);
-    }
-  }
-
-  // Fallback to Next.js API route
   const res = await fetch("/api/checkout", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
 
-  if (!res.ok) {
-    const errorBody = await res.json().catch(() => ({}));
-    throw new Error(errorBody.error || "Failed to create checkout session");
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok || body.error) {
+    throw new Error(body.error || "Failed to create Stripe checkout session");
   }
 
-  return (await res.json()) as { url: string | null };
+  return body as { url: string | null };
 }
 
 export async function verifyCheckoutSession(sessionId: string): Promise<{
@@ -149,40 +124,10 @@ export async function verifyCheckoutSession(sessionId: string): Promise<{
   paymentMethod?: string;
   rideData?: Record<string, any>;
 }> {
-  if (isConvexActive) {
-    try {
-      const response = await fetch(
-        `${rawConvexUrl}/api/run/payments_actions/verifyCheckoutSession`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ args: { sessionId } }),
-        }
-      );
-
-      const body = await response.json();
-
-      if (response.ok && body.status !== "error") {
-        return body.value || body;
-      }
-      console.warn("Convex verification returned error, routing to Next.js API:", body);
-    } catch (err) {
-      console.warn("Convex verify network error, routing to Next.js API:", err);
-    }
-  }
-
-  // Fallback to Next.js API route
   const res = await fetch(`/api/checkout?session_id=${encodeURIComponent(sessionId)}`);
   if (!res.ok) {
-    return {
-      status: "paid",
-      amount: 185.0,
-      currency: "usd",
-      paymentMethod: "card",
-      rideData: {},
-    };
+    const errorBody = await res.json().catch(() => ({}));
+    throw new Error(errorBody.error || "Failed to verify checkout session");
   }
 
   return (await res.json()) as any;
