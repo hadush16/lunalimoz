@@ -11,9 +11,17 @@ export const stripe = new Stripe(stripeSecretKey, {
 });
 
 export function isLiveStripeConfigured(): boolean {
+  const key = process.env.STRIPE_SECRET_KEY || "";
   return (
-    !!process.env.STRIPE_SECRET_KEY &&
-    !process.env.STRIPE_SECRET_KEY.includes("placeholder") &&
-    !process.env.STRIPE_SECRET_KEY.includes("your_")
+    typeof key === "string" &&
+    key.length >= 25 &&
+    (key.startsWith("sk_live_") ||
+      key.startsWith("sk_test_") ||
+      key.startsWith("rk_live_") ||
+      key.startsWith("rk_test_")) &&
+    !key.includes("placeholder") &&
+    !key.includes("your_") &&
+    !key.includes("123456789") &&
+    !key.includes("*****")
   );
 }
