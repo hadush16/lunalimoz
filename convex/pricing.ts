@@ -1,6 +1,6 @@
 import { query, internalQuery } from "./_generated/server";
 import { v } from "convex/values";
-import { internal } from "./_generated/api";
+import { DEFAULT_VEHICLES, DEFAULT_SURCHARGES, DEFAULT_POLICY_SETTINGS } from "./rate_cards";
 
 export interface OptionalServiceItem {
   id: string;
@@ -19,7 +19,7 @@ export const AVAILABLE_OPTIONAL_SERVICES: OptionalServiceItem[] = [
 export interface ItemizedQuote {
   carTypeName: string;
   carTypeImage: string;
-  serviceType: "point_to_point" | "hourly";
+  serviceType: "point_to_point" | "round_trip" | "hourly" | "airport" | "custom";
   distanceKm: number;
   calculatedMiles: number;
   durationMinutes: number;
@@ -45,6 +45,7 @@ export interface ItemizedQuote {
   currency: string;
   pricingVersion: string;
   quoteTimestamp: number;
+  signedQuoteToken?: string;
 }
 
 export const getAvailableServices = query({
@@ -59,7 +60,13 @@ export const calculateQuote = query({
     carTypeName: v.string(),
     distanceKm: v.number(),
     durationMinutes: v.number(),
-    serviceType: v.union(v.literal("point_to_point"), v.literal("hourly")),
+    serviceType: v.union(
+      v.literal("point_to_point"),
+      v.literal("round_trip"),
+      v.literal("hourly"),
+      v.literal("airport"),
+      v.literal("custom")
+    ),
     hourlyDuration: v.optional(v.number()),
     pickupDate: v.string(),
     pickupTime: v.optional(v.string()),
@@ -79,7 +86,13 @@ export const calculateQuoteInternal = internalQuery({
     carTypeName: v.string(),
     distanceKm: v.number(),
     durationMinutes: v.number(),
-    serviceType: v.union(v.literal("point_to_point"), v.literal("hourly")),
+    serviceType: v.union(
+      v.literal("point_to_point"),
+      v.literal("round_trip"),
+      v.literal("hourly"),
+      v.literal("airport"),
+      v.literal("custom")
+    ),
     hourlyDuration: v.optional(v.number()),
     pickupDate: v.string(),
     pickupTime: v.optional(v.string()),
@@ -95,67 +108,128 @@ export const calculateQuoteInternal = internalQuery({
 });
 
 async function computeAuthoritativeQuote(ctx: any, args: any): Promise<ItemizedQuote> {
-  const carType = await ctx.db
-    .query("carTypes")
-    .withIndex("by_name", (q: any) => q.eq("name", args.carTypeName))
-    .first();
+  let activeRateCardData: any = null;
+  try {
+    const activeCard = await ctx.db
+      .query("rate_cards")
+      .withIndex("by_active", (q: any) => q.eq("is_active", true))
+      .first();
 
-  if (!carType) {
-    throw new Error(`Vehicle class "${args.carTypeName}" not found.`);
-  }
+    if (activeCard) {
+      const vehicleRates = await ctx.db
+        .query("vehicle_rates")
+        .withIndex("by_rate_card", (q: any) => q.eq("rate_card_id", activeCard._id))
+        .collect();
 
-  const settings = await ctx.db.query("settings").first();
+      const vehicleRatesWithTiers = await Promise.all(
+        vehicleRates.map(async (vr: any) => {
+          const tiers = await ctx.db
+            .query("mileage_tiers")
+            .withIndex("by_vehicle_rate", (q: any) => q.eq("vehicle_rate_id", vr._id))
+            .collect();
+          return {
+            ...vr,
+            tiers: tiers.sort((a: any, b: any) => a.from_mile - b.from_mile),
+          };
+        })
+      );
 
-  // Mileage conversion
-  const calculatedMiles = Math.round((args.distanceKm * 0.621371) * 10) / 10;
-  const perMileRate = carType.perMileRate || (carType.perKmRate ? carType.perKmRate * 1.60934 : 4.0);
-  const baseFare = carType.baseFare || 35.0;
+      const surcharges = await ctx.db
+        .query("surcharges")
+        .withIndex("by_rate_card", (q: any) => q.eq("rate_card_id", activeCard._id))
+        .collect();
 
-  // Surge and Date evaluation
-  let surgeMultiplier = settings?.surgeMultiplier || 1.0;
-  if (args.pickupDate) {
-    const dayOfWeek = new Date(args.pickupDate).getUTCDay();
-    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6 || dayOfWeek === 5; // Fri/Sat/Sun
-    if (isWeekend && settings?.weekendSurgeMultiplier && settings.weekendSurgeMultiplier > 1.0) {
-      surgeMultiplier = Math.max(surgeMultiplier, settings.weekendSurgeMultiplier);
+      activeRateCardData = {
+        rateCard: activeCard,
+        vehicleRates: vehicleRatesWithTiers,
+        surcharges,
+      };
     }
+  } catch (err) {
+    console.warn("Falling back to default rate cards:", err);
   }
 
+  const vehicles = activeRateCardData?.vehicleRates?.length > 0 ? activeRateCardData.vehicleRates : DEFAULT_VEHICLES;
+  const surcharges = activeRateCardData?.surcharges?.length > 0 ? activeRateCardData.surcharges : DEFAULT_SURCHARGES;
+
+  // Match vehicle by name or slug
+  const matchedVehicle = vehicles.find(
+    (v: any) =>
+      v.display_name?.toLowerCase() === args.carTypeName?.toLowerCase() ||
+      v.vehicle_slug?.toLowerCase() === args.carTypeName?.toLowerCase() ||
+      args.carTypeName?.toLowerCase().includes(v.vehicle_slug?.toLowerCase())
+  ) || vehicles[0];
+
+  const calculatedMiles = Math.round((args.distanceKm * 0.621371) * 10) / 10;
+  const isRoundTrip = args.serviceType === "round_trip";
+  const tripMultiplier = isRoundTrip ? 2 : 1;
+  const effectiveMiles = calculatedMiles * tripMultiplier;
+  const effectiveDuration = args.durationMinutes * tripMultiplier;
+
+  let baseFare = (matchedVehicle.base_fare_cents || 3500) / 100 * tripMultiplier;
   let mileageCharge = 0;
   let timeCharge = 0;
-  let hourlyRate = carType.hourlyRate || 150.0;
+  let hourlyRate = (matchedVehicle.hourly_rate_cents || 15000) / 100;
   let rawTransitCost = 0;
 
   if (args.serviceType === "hourly") {
-    const minHours = carType.hourlyMin || 2;
+    const minHours = matchedVehicle.hourly_minimum_hours || 2;
     const requestedHours = Math.max(minHours, args.hourlyDuration || minHours);
-    rawTransitCost = requestedHours * hourlyRate * (carType.multiplier || 1.0);
-    timeCharge = Math.round(rawTransitCost * 100) / 100;
+    rawTransitCost = requestedHours * hourlyRate;
+    timeCharge = rawTransitCost;
+    baseFare = 0;
   } else {
-    const effectiveMiles = Math.max(carType.minMiles || 0, calculatedMiles);
-    mileageCharge = Math.round((effectiveMiles * perMileRate * (carType.multiplier || 1.0)) * 100) / 100;
-    timeCharge = Math.round((args.durationMinutes * (carType.perMinuteRate || 0.5) * (carType.multiplier || 1.0)) * 100) / 100;
+    // Cumulative mileage tiers
+    const tiers = matchedVehicle.tiers || [];
+    let remaining = effectiveMiles;
+    let tierCents = 0;
+    if (tiers.length > 0) {
+      for (const t of tiers) {
+        if (effectiveMiles <= t.from_mile) break;
+        const span = t.to_mile !== undefined && t.to_mile !== null ? t.to_mile - t.from_mile : Infinity;
+        const inTier = Math.min(remaining, span);
+        if (inTier > 0) {
+          tierCents += inTier * t.per_mile_cents;
+          remaining -= inTier;
+        }
+        if (remaining <= 0) break;
+      }
+      mileageCharge = Math.round(tierCents) / 100;
+    } else {
+      mileageCharge = Math.round(effectiveMiles * (matchedVehicle.per_mile_cents || 450)) / 100;
+    }
+
+    if (matchedVehicle.per_minute_cents > 0 && effectiveDuration > 0) {
+      timeCharge = Math.round(effectiveDuration * matchedVehicle.per_minute_cents) / 100;
+    }
     rawTransitCost = baseFare + mileageCharge + timeCharge;
   }
 
-  // Minimum fare check
-  const minFare = Math.max(carType.minFare || 0, settings?.minimumFare || 50.0);
+  // Minimum Fare Floor
+  const minFare = ((matchedVehicle.minimum_fare_cents || 7500) / 100) * tripMultiplier;
   if (rawTransitCost < minFare) {
     rawTransitCost = minFare;
   }
 
-  // Airport Fee detection
+  // Surcharges mapping
+  const surchargesMap = new Map<string, any>(surcharges.map((s: any) => [s.key, s]));
+
+  // Airport Fee
   let airportFee = 0;
   const isAirport =
+    args.serviceType === "airport" ||
     (args.pickupAddress && /airport|sea-tac|seatac|terminal|concourse/i.test(args.pickupAddress)) ||
     (args.destinationAddress && /airport|sea-tac|seatac|terminal|concourse/i.test(args.destinationAddress));
   if (isAirport) {
-    airportFee = settings?.baseAirportFee ?? 20.0;
+    const airportPickup = surchargesMap.get("airport_pickup_fee");
+    airportFee = (airportPickup && airportPickup.is_active) ? (airportPickup.amount / 100) : 25.0;
   }
 
-  // Additional stops
+  // Additional intermediate stops
   const stopCount = args.extraStopsCount || 0;
-  const stopFee = stopCount * (settings?.additionalStopFee ?? 30.0);
+  const stopFeeItem = surchargesMap.get("extra_stop");
+  const stopFeeRate = (stopFeeItem && stopFeeItem.is_active) ? (stopFeeItem.amount / 100) : 30.0;
+  const stopFee = stopCount * stopFeeRate;
 
   // Optional Services
   const selectedServiceIds: string[] = args.selectedServiceIds || [];
@@ -170,15 +244,20 @@ async function computeAuthoritativeQuote(ctx: any, args: any): Promise<ItemizedQ
     }
   }
 
-  // Waiting fee (default 0 for standard reservations)
-  const waitingFee = 0;
-
-  // Surge Fee calculation
-  const surgeFee = Math.round((rawTransitCost * (surgeMultiplier - 1.0)) * 100) / 100;
+  // Surge Multiplier
+  let surgeMultiplier = 1.0;
+  if (args.pickupDate) {
+    const dayOfWeek = new Date(args.pickupDate).getUTCDay();
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6 || dayOfWeek === 5;
+    if (isWeekend) {
+      surgeMultiplier = 1.10;
+    }
+  }
+  const surgeFee = Math.round(rawTransitCost * (surgeMultiplier - 1.0) * 100) / 100;
 
   // Pre-discount subtotal
   const preDiscountSubtotal = Math.round(
-    (rawTransitCost + surgeFee + airportFee + stopFee + waitingFee + optionalServicesFee) * 100
+    (rawTransitCost + surgeFee + airportFee + stopFee + optionalServicesFee) * 100
   ) / 100;
 
   // Promo Discount
@@ -210,27 +289,28 @@ async function computeAuthoritativeQuote(ctx: any, args: any): Promise<ItemizedQ
 
   const subtotal = Math.max(0, Math.round((preDiscountSubtotal - discountAmount) * 100) / 100);
 
-  // Taxes
-  const taxRatePercent = settings?.taxRatePercent ?? 10.25; // Seattle/WA combined local rate standard or 0 if all-inclusive
-  const taxAmount = Math.round((subtotal * (taxRatePercent / 100)) * 100) / 100;
+  // Washington Sales Tax
+  const taxSurcharge = surchargesMap.get("wa_sales_tax");
+  const taxRatePercent = (taxSurcharge && taxSurcharge.is_active) ? (taxSurcharge.amount / 100) : 10.25;
+  const taxAmount = Math.round(subtotal * (taxRatePercent / 100) * 100) / 100;
   const finalAmount = Math.round((subtotal + taxAmount) * 100) / 100;
 
   return {
-    carTypeName: carType.name,
-    carTypeImage: carType.image,
+    carTypeName: matchedVehicle.display_name || args.carTypeName,
+    carTypeImage: matchedVehicle.image || "/luxury_suv.png",
     serviceType: args.serviceType,
     distanceKm: args.distanceKm,
-    calculatedMiles,
-    durationMinutes: args.durationMinutes,
-    baseFare,
-    perMileRate,
+    calculatedMiles: effectiveMiles,
+    durationMinutes: effectiveDuration,
+    baseFare: Math.round(baseFare * 100) / 100,
+    perMileRate: (matchedVehicle.per_mile_cents || 450) / 100,
     mileageCharge,
     timeCharge,
-    hourlyDuration: args.serviceType === "hourly" ? args.hourlyDuration || 2 : undefined,
-    hourlyRate: args.serviceType === "hourly" ? hourlyRate : undefined,
+    hourlyDuration: args.hourlyDuration,
+    hourlyRate,
     airportFee,
     stopFee,
-    waitingFee,
+    waitingFee: 0,
     optionalServicesFee,
     optionalServicesList,
     surgeMultiplier,
@@ -242,7 +322,7 @@ async function computeAuthoritativeQuote(ctx: any, args: any): Promise<ItemizedQ
     taxAmount,
     finalAmount,
     currency: "USD",
-    pricingVersion: "v2.0-luna-engine",
+    pricingVersion: "v2.0-tiered",
     quoteTimestamp: Date.now(),
   };
 }

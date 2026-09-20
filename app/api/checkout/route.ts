@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe, isLiveStripeConfigured } from "@/lib/stripe/server";
 import { saveBookingRecord } from "@/lib/bookings/storage";
+import { calculateTripQuote, verifyQuoteToken } from "@/lib/pricing/engine";
+import { SupportedTripType } from "@/lib/pricing/types";
 
 export async function POST(req: NextRequest) {
   try {
@@ -11,13 +13,50 @@ export async function POST(req: NextRequest) {
       process.env.NEXT_PUBLIC_APP_URL ||
       "http://localhost:3000";
 
-    const priceInDollars = Number(data.price || 185.0);
-    const unitAmountCents = Math.round(priceInDollars * 100);
+    // 1. Authoritative Server Calculation
+    const vehicleKey = (data.carTypeName || "Mercedes-Benz S-Class").toLowerCase();
+    const distanceMiles = Number(data.distanceMiles || (Number(data.distance || 15) * 0.621371) || 15.0);
+    const durationMinutes = Number(data.durationMinutes || data.duration || 25);
+    const serviceType = (data.serviceType as SupportedTripType) || "point_to_point";
+
+    let calculatedQuote = calculateTripQuote({
+      vehicle_class: vehicleKey.includes("escalade")
+        ? "escalade-esv"
+        : vehicleKey.includes("navigator")
+        ? "navigator-l"
+        : vehicleKey.includes("sprinter")
+        ? "sprinter"
+        : "s-class",
+      trip_type: serviceType,
+      distance_miles: distanceMiles,
+      duration_minutes: durationMinutes,
+      hourly_hours: data.hourlyDuration ? Number(data.hourlyDuration) : undefined,
+      pickup_datetime: `${data.pickupDate || new Date().toISOString().split("T")[0]}T${data.pickupTime || "12:00"}:00`,
+      pickup_address: data.pickupAddress || "",
+      dropoff_address: data.destinationAddress || "",
+      is_airport_pickup: (data.pickupAddress || "").toLowerCase().includes("sea") || (data.pickupAddress || "").toLowerCase().includes("airport"),
+      is_airport_dropoff: (data.destinationAddress || "").toLowerCase().includes("sea") || (data.destinationAddress || "").toLowerCase().includes("airport"),
+      meet_and_greet: Boolean(data.optionalServices?.some((s: any) => s.id === "meet_greet")),
+      child_seats: data.optionalServices?.some((s: any) => s.id === "child_seat") ? 1 : 0,
+      extra_stops: data.optionalServices?.some((s: any) => s.id === "extra_stop") ? 1 : 0,
+      discount_code: data.discountCode,
+    });
+
+    // Check if a valid signed quote token was provided
+    if (data.signedQuoteToken) {
+      const verified = verifyQuoteToken(data.signedQuoteToken);
+      if (verified && verified.total_cents > 0) {
+        calculatedQuote = verified;
+      }
+    }
+
+    const unitAmountCents = calculatedQuote.total_cents;
+    const priceInDollars = calculatedQuote.total_cents / 100;
 
     if (isLiveStripeConfigured()) {
       try {
         const lineItemDescription =
-          data.serviceType === "hourly"
+          serviceType === "hourly"
             ? `${data.hourlyDuration || 2}-Hour Private Luxury Charter (Seattle)`
             : `${(data.pickupAddress || "Seattle, WA").slice(0, 40)}... → ${(data.destinationAddress || "Sea-Tac Airport").slice(0, 40)}...`;
 
@@ -51,10 +90,12 @@ export async function POST(req: NextRequest) {
             carTypeName: data.carTypeName || "",
             passengers: String(data.passengers || 1),
             luggage: String(data.luggage || 1),
-            serviceType: data.serviceType || "point_to_point",
+            serviceType: serviceType,
             hourlyDuration: String(data.hourlyDuration || ""),
             flightNumber: data.flightNumber || "",
             price: String(priceInDollars),
+            distanceMiles: String(distanceMiles),
+            durationMinutes: String(durationMinutes),
           },
         });
 
@@ -76,10 +117,10 @@ export async function POST(req: NextRequest) {
           price: priceInDollars,
           passengers: Number(data.passengers || 1),
           luggage: Number(data.luggage || 1),
-          serviceType: (data.serviceType as "point_to_point" | "hourly") || "point_to_point",
+          serviceType: (serviceType as "point_to_point" | "hourly") || "point_to_point",
           hourlyDuration: data.hourlyDuration ? Number(data.hourlyDuration) : undefined,
-          distance: 20,
-          duration: 30,
+          distance: distanceMiles,
+          duration: durationMinutes,
           status: "pending_approval",
           paymentStatus: "unpaid",
           createdAt: Date.now(),
@@ -107,10 +148,10 @@ export async function POST(req: NextRequest) {
       price: priceInDollars,
       passengers: Number(data.passengers || 1),
       luggage: Number(data.luggage || 1),
-      serviceType: (data.serviceType as "point_to_point" | "hourly") || "point_to_point",
+      serviceType: (serviceType as "point_to_point" | "hourly") || "point_to_point",
       hourlyDuration: data.hourlyDuration ? Number(data.hourlyDuration) : undefined,
-      distance: 20,
-      duration: 30,
+      distance: distanceMiles,
+      duration: durationMinutes,
       status: "pending_approval",
       paymentStatus: "unpaid",
       createdAt: Date.now(),
@@ -148,7 +189,7 @@ export async function GET(req: NextRequest) {
         pickupDate: new Date().toISOString().split("T")[0],
         pickupTime: "12:00",
         carTypeName: "Cadillac Escalade ESV",
-        price: 185.0,
+        price: 165.0,
         passengers: 4,
         luggage: 4,
         serviceType: "point_to_point",
@@ -161,7 +202,7 @@ export async function GET(req: NextRequest) {
 
       return NextResponse.json({
         status: "paid",
-        amount: 185.0,
+        amount: mockRecord.price,
         currency: "usd",
         paymentMethod: "card",
         rideId: mockRecord.id,
@@ -172,7 +213,7 @@ export async function GET(req: NextRequest) {
     if (!isLiveStripeConfigured()) {
       return NextResponse.json({
         status: "paid",
-        amount: 185.0,
+        amount: 165.0,
         currency: "usd",
         paymentMethod: "card",
         rideData: {},
@@ -205,11 +246,11 @@ export async function GET(req: NextRequest) {
       luggage: Number(meta.luggage || 1),
       serviceType: (meta.serviceType as "point_to_point" | "hourly") || "point_to_point",
       hourlyDuration: meta.hourlyDuration ? Number(meta.hourlyDuration) : undefined,
-      distance: 20,
-      duration: 30,
+      distance: Number(meta.distanceMiles || 20),
+      duration: Number(meta.durationMinutes || 30),
       status: "confirmed",
       paymentStatus: "paid",
-      stripePaymentIntentId: session.payment_intent as string | undefined,
+      stripePaymentIntentId: typeof session.payment_intent === "string" ? session.payment_intent : undefined,
       createdAt: Date.now(),
     });
 
@@ -218,7 +259,7 @@ export async function GET(req: NextRequest) {
       amount,
       currency: session.currency ?? "usd",
       paymentMethod: session.payment_method_types?.[0] ?? "card",
-      stripePaymentIntentId: session.payment_intent as string | null,
+      stripePaymentIntentId: typeof session.payment_intent === "string" ? session.payment_intent : null,
       rideId: saved.id,
       rideData: {
         ...meta,

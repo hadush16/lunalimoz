@@ -26,7 +26,7 @@ export default function SuccessContent() {
     if (sessionId === "mock_session" || !sessionId) {
       setStatus("success");
       setRideId(bookingId);
-      setAmount(priceParam ? parseFloat(priceParam) : 185.0);
+      setAmount(priceParam ? parseFloat(priceParam) : null);
       return;
     }
 
@@ -63,7 +63,7 @@ export default function SuccessContent() {
             duration: Number(rideData.duration || 30),
             carTypeName: rideData.carTypeName || "Mercedes-Benz S-Class",
             carTypeMultiplier: Number(rideData.carTypeMultiplier || 1.0),
-            price: Number(rideData.price || result.amount || 185.0),
+            price: Number(rideData.price || result.amount || (priceParam ? parseFloat(priceParam) : 0)),
             passengers: Number(rideData.passengers || 1),
             luggage: Number(rideData.luggage || 1),
             accessible: rideData.accessible === true || rideData.accessible === "true",
@@ -85,14 +85,14 @@ export default function SuccessContent() {
           });
 
           setRideId(String(createdRideId));
-          setAmount(result.amount ?? null);
+          setAmount(result.amount ?? (rideData.price ? Number(rideData.price) : null));
           setStatus("success");
         }
       } catch (error: unknown) {
         console.log("Standalone mode fallback verification:", error);
         setStatus("success");
         setRideId(bookingId);
-        setAmount(priceParam ? parseFloat(priceParam) : 185.0);
+        setAmount(priceParam ? parseFloat(priceParam) : null);
       }
     };
 

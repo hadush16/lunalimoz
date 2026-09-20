@@ -39,15 +39,17 @@ import { createCheckoutSession } from "@/lib/convex/api";
 import { calculateRouteBetween, type RouteResult } from "@/lib/tomtom/routing";
 import { formatDuration, formatDistance } from "@/lib/utils";
 import { formatPrice } from "@/lib/pricing";
+import { calculateTripQuote } from "@/lib/pricing/engine";
+import { SupportedTripType, VehicleClassKey } from "@/lib/pricing/types";
 import { geocodeAddress, type SearchResult } from "@/lib/tomtom/search";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { isValidConvex } from "@/lib/convex/provider";
 
 const DEFAULT_ROUTE: RouteResult = {
-  distance: 18500,
-  duration: 1500,
-  distanceInKm: 18.5,
+  distance: 24140, // ~15 miles
+  duration: 1500,  // 25 mins
+  distanceInKm: 24.14,
   durationInMinutes: 25,
   coordinates: [],
   routeGeoJSON: null,
@@ -56,16 +58,17 @@ const DEFAULT_ROUTE: RouteResult = {
 const DEFAULT_CAR_TYPES = [
   {
     _id: "s_class" as any,
+    id: "s-class",
     name: "Mercedes-Benz S-Class",
     description: "The benchmark of luxury sedans. Handcrafted leather interior, active noise cancellation, and supreme comfort.",
     image: "/executive_sedan.png",
     baseFare: 35.0,
-    perMileRate: 4.5,
-    perKmRate: 2.8,
+    perMileRate: 5.5,
+    perKmRate: 3.4,
     perMinuteRate: 0.6,
-    hourlyRate: 135.0,
+    hourlyRate: 150.0,
     hourlyMin: 2,
-    minFare: 75.0,
+    minFare: 100.0,
     multiplier: 1.0,
     capacity: 3,
     luggageCapacity: 3,
@@ -73,58 +76,61 @@ const DEFAULT_CAR_TYPES = [
   },
   {
     _id: "escalade" as any,
+    id: "escalade-esv",
     name: "Cadillac Escalade ESV",
     description: "The pinnacle of executive SUV luxury with extended legroom and massive cargo capacity. Ideal for airport transfers.",
     image: "/luxury_suv.png",
-    baseFare: 50.0,
-    perMileRate: 5.5,
-    perKmRate: 3.4,
+    baseFare: 40.0,
+    perMileRate: 6.5,
+    perKmRate: 4.0,
     perMinuteRate: 0.8,
-    hourlyRate: 165.0,
+    hourlyRate: 180.0,
     hourlyMin: 2,
-    minFare: 95.0,
-    multiplier: 1.25,
+    minFare: 120.0,
+    multiplier: 1.2,
     capacity: 6,
     luggageCapacity: 6,
     isActive: true,
   },
   {
     _id: "navigator" as any,
+    id: "navigator-l",
     name: "Lincoln Navigator L",
     description: "American prestige with extended wheelbase, premium Revel sound system, and first-class captain chairs.",
     image: "/fleet_black_bg.png",
-    baseFare: 50.0,
-    perMileRate: 5.5,
-    perKmRate: 3.4,
+    baseFare: 40.0,
+    perMileRate: 6.5,
+    perKmRate: 4.0,
     perMinuteRate: 0.8,
-    hourlyRate: 165.0,
+    hourlyRate: 180.0,
     hourlyMin: 2,
-    minFare: 95.0,
-    multiplier: 1.25,
+    minFare: 120.0,
+    multiplier: 1.2,
     capacity: 6,
     luggageCapacity: 6,
     isActive: true,
   },
   {
     _id: "sprinter" as any,
+    id: "sprinter",
     name: "Mercedes-Benz Sprinter",
     description: "High-ceiling executive van with custom leather captain chairs and spacious luggage hold for large groups.",
     image: "/executive_van.png",
-    baseFare: 85.0,
-    perMileRate: 7.0,
-    perKmRate: 4.35,
+    baseFare: 65.0,
+    perMileRate: 7.5,
+    perKmRate: 4.65,
     perMinuteRate: 1.2,
-    hourlyRate: 225.0,
+    hourlyRate: 220.0,
     hourlyMin: 3,
-    minFare: 175.0,
-    multiplier: 1.6,
+    minFare: 180.0,
+    multiplier: 1.5,
     capacity: 14,
     luggageCapacity: 14,
     isActive: true,
   },
 ];
 
-type ServiceType = "point_to_point" | "hourly";
+type ServiceType = SupportedTripType;
 type BookingWizardStep = 1 | 2 | 3 | 4;
 
 export default function BookingClient() {
@@ -204,11 +210,62 @@ function BookingClientUI({ dbCarTypes }: { dbCarTypes: any }) {
     }
   }, [selectedCar, activeCarTypes, setSelectedCar]);
 
+  const getVehicleKey = React.useCallback((car: any): VehicleClassKey => {
+    const name = (car?.id || car?.name || "").toLowerCase();
+    if (name.includes("escalade")) return "escalade-esv";
+    if (name.includes("navigator")) return "navigator-l";
+    if (name.includes("sprinter")) return "sprinter";
+    return "s-class";
+  }, []);
+
+  const distanceKm = route?.distanceInKm || 24.14;
+  const distanceMiles = Math.round(distanceKm * 0.621371 * 10) / 10;
+  const durationMinutes = route?.durationInMinutes || 25;
+
+  const isAirportPickup = (pickup?.address?.freeformAddress || "").toLowerCase().includes("sea") || (pickup?.address?.freeformAddress || "").toLowerCase().includes("airport") || serviceType === "airport";
+  const isAirportDropoff = (destination?.address?.freeformAddress || "").toLowerCase().includes("sea") || (destination?.address?.freeformAddress || "").toLowerCase().includes("airport");
+
+  // Local fallback engine computation (runs immediately and synchronously)
+  const localQuote = React.useMemo(() => {
+    const vehicleKey = getVehicleKey(selectedCar);
+    return calculateTripQuote({
+      vehicle_class: vehicleKey,
+      trip_type: serviceType,
+      distance_miles: distanceMiles,
+      duration_minutes: durationMinutes,
+      hourly_hours: serviceType === "hourly" ? hourlyDuration : undefined,
+      pickup_datetime: `${pickupDate}T${pickupTime}:00`,
+      pickup_address: pickup?.address?.freeformAddress,
+      dropoff_address: destination?.address?.freeformAddress,
+      is_airport_pickup: isAirportPickup,
+      is_airport_dropoff: isAirportDropoff,
+      meet_and_greet: selectedServiceIds.includes("meet_greet"),
+      child_seats: selectedServiceIds.includes("child_seat") ? 1 : 0,
+      extra_stops: selectedServiceIds.includes("extra_stop") ? 1 : 0,
+      discount_code: appliedDiscountCode || undefined,
+    });
+  }, [
+    getVehicleKey,
+    selectedCar,
+    serviceType,
+    distanceMiles,
+    durationMinutes,
+    hourlyDuration,
+    pickupDate,
+    pickupTime,
+    pickup,
+    destination,
+    isAirportPickup,
+    isAirportDropoff,
+    selectedServiceIds,
+    appliedDiscountCode,
+  ]);
+
   // Server quote query: updates live when route, vehicle, date, time, services, or discount change
   const serverQuote = useQuery(api.pricing.calculateQuote, {
     carTypeName: selectedCar?.name || "Mercedes-Benz S-Class",
-    distanceKm: route?.distanceInKm || 15.0,
-    durationMinutes: route?.durationInMinutes || 25,
+    distanceKm,
+    durationMinutes,
     serviceType,
     hourlyDuration,
     pickupDate,
@@ -218,6 +275,8 @@ function BookingClientUI({ dbCarTypes }: { dbCarTypes: any }) {
     selectedServiceIds,
     discountCode: appliedDiscountCode || undefined,
   });
+
+  const effectiveFinalAmount = serverQuote?.finalAmount || (localQuote.total_cents / 100);
 
   // Fetch route when locations change
   const fetchRoute = async (pickupLoc: SearchResult, destLoc: SearchResult) => {
@@ -247,12 +306,16 @@ function BookingClientUI({ dbCarTypes }: { dbCarTypes: any }) {
     const dParam = searchParams.get("d");
     const dateParam = searchParams.get("date");
     const timeParam = searchParams.get("time");
+    const typeParam = searchParams.get("type");
 
-    if (!pParam && !dParam && !dateParam && !timeParam) return;
+    if (!pParam && !dParam && !dateParam && !timeParam && !typeParam) return;
     hasInitializedFromParams.current = true;
 
     if (dateParam) setPickupDate(dateParam);
     if (timeParam) setPickupTime(timeParam);
+    if (typeParam && ["point_to_point", "round_trip", "hourly", "airport"].includes(typeParam)) {
+      setServiceType(typeParam as ServiceType);
+    }
 
     const initFromParams = async () => {
       try {
@@ -274,7 +337,7 @@ function BookingClientUI({ dbCarTypes }: { dbCarTypes: any }) {
       }
     };
     initFromParams();
-  }, [searchParams]);
+  }, [searchParams, setPickup, setDestination]);
 
   const toggleOptionalService = (serviceId: string) => {
     setSelectedServiceIds((prev) =>
@@ -324,12 +387,15 @@ function BookingClientUI({ dbCarTypes }: { dbCarTypes: any }) {
 
       const checkoutData = {
         carTypeName: selectedCar?.name || "Mercedes-Benz S-Class",
-        distance: route?.distanceInKm || 18.5,
-        duration: route?.durationInMinutes || 25,
+        distance: distanceKm,
+        duration: durationMinutes,
+        distanceMiles,
+        durationMinutes,
         serviceType,
         hourlyDuration: serviceType === "hourly" ? hourlyDuration : undefined,
         carTypeMultiplier: selectedCar?.multiplier || 1.0,
-        price: serverQuote?.finalAmount || 185.0,
+        price: effectiveFinalAmount,
+        signedQuoteToken: serverQuote?.signedQuoteToken,
         customerName: customerName.trim(),
         customerEmail: customerEmail.trim().toLowerCase(),
         customerPhone: customerPhone.trim(),
@@ -477,11 +543,11 @@ function BookingClientUI({ dbCarTypes }: { dbCarTypes: any }) {
                   </div>
                   
                   {/* Service Type Toggle */}
-                  <div className="flex bg-secondary p-1 border border-border">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-1 bg-secondary p-1 border border-border">
                     <button
                       type="button"
                       onClick={() => setServiceType("point_to_point")}
-                      className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${
+                      className={`px-3 py-2 text-[9px] font-black uppercase tracking-widest transition-all ${
                         serviceType === "point_to_point"
                           ? "bg-gold text-primary-foreground shadow-sm"
                           : "text-muted-foreground hover:text-foreground"
@@ -491,8 +557,30 @@ function BookingClientUI({ dbCarTypes }: { dbCarTypes: any }) {
                     </button>
                     <button
                       type="button"
+                      onClick={() => setServiceType("round_trip")}
+                      className={`px-3 py-2 text-[9px] font-black uppercase tracking-widest transition-all ${
+                        serviceType === "round_trip"
+                          ? "bg-gold text-primary-foreground shadow-sm"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      Round Trip
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setServiceType("airport")}
+                      className={`px-3 py-2 text-[9px] font-black uppercase tracking-widest transition-all ${
+                        serviceType === "airport"
+                          ? "bg-gold text-primary-foreground shadow-sm"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      Airport Transfer
+                    </button>
+                    <button
+                      type="button"
                       onClick={() => setServiceType("hourly")}
-                      className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${
+                      className={`px-3 py-2 text-[9px] font-black uppercase tracking-widest transition-all ${
                         serviceType === "hourly"
                           ? "bg-gold text-primary-foreground shadow-sm"
                           : "text-muted-foreground hover:text-foreground"
@@ -507,10 +595,10 @@ function BookingClientUI({ dbCarTypes }: { dbCarTypes: any }) {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">
-                      Pickup Address / Airport Terminal *
+                      {serviceType === "airport" ? "Pickup Airport Terminal / Address *" : "Pickup Address / Airport Terminal *"}
                     </label>
                     <LocationInput
-                      placeholder="Enter pickup address, hotel, or Sea-Tac terminal..."
+                      placeholder={serviceType === "airport" ? "Enter Sea-Tac terminal or hotel..." : "Enter pickup address, hotel, or Sea-Tac terminal..."}
                       value={pickup}
                       onChange={(loc: SearchResult | null) => {
                         setPickup(loc);
@@ -519,10 +607,10 @@ function BookingClientUI({ dbCarTypes }: { dbCarTypes: any }) {
                     />
                   </div>
 
-                  {serviceType === "point_to_point" ? (
+                  {serviceType !== "hourly" ? (
                     <div>
                       <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">
-                        Destination Address / Venue *
+                        {serviceType === "round_trip" ? "Turnaround / Destination Address *" : "Destination Address / Venue *"}
                       </label>
                       <LocationInput
                         placeholder="Enter destination address or Sea-Tac airport..."
@@ -605,9 +693,9 @@ function BookingClientUI({ dbCarTypes }: { dbCarTypes: any }) {
                         routeCoordinates={route?.coordinates}
                       />
                     </div>
-                    {serviceType === "point_to_point" && route && (
+                    {serviceType !== "hourly" && route && (
                       <div className="flex justify-between text-[11px] font-bold text-muted-foreground uppercase tracking-wider px-2">
-                        <span>Distance: {formatDistance(route.distanceInKm)} ({Math.round(route.distanceInKm * 0.621371 * 10) / 10} mi)</span>
+                        <span>Distance: {formatDistance(route.distanceInKm)} ({Math.round(route.distanceInKm * 0.621371 * 10) / 10} mi{serviceType === "round_trip" ? " each way" : ""})</span>
                         <span>Est. Duration: {formatDuration(route.durationInMinutes)}</span>
                       </div>
                     )}
@@ -622,7 +710,7 @@ function BookingClientUI({ dbCarTypes }: { dbCarTypes: any }) {
                         setErrorMessage("Please select a valid pickup location.");
                         return;
                       }
-                      if (serviceType === "point_to_point" && !destination) {
+                      if (serviceType !== "hourly" && !destination) {
                         setErrorMessage("Please select a valid destination location.");
                         return;
                       }
@@ -663,6 +751,24 @@ function BookingClientUI({ dbCarTypes }: { dbCarTypes: any }) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {activeCarTypes.map((car: any) => {
                     const isSelected = selectedCar?.name === car.name;
+                    const carKey = getVehicleKey(car);
+                    const carQuote = calculateTripQuote({
+                      vehicle_class: carKey,
+                      trip_type: serviceType,
+                      distance_miles: distanceMiles,
+                      duration_minutes: durationMinutes,
+                      hourly_hours: serviceType === "hourly" ? hourlyDuration : undefined,
+                      pickup_datetime: `${pickupDate}T${pickupTime}:00`,
+                      pickup_address: pickup?.address?.freeformAddress,
+                      dropoff_address: destination?.address?.freeformAddress,
+                      is_airport_pickup: isAirportPickup,
+                      is_airport_dropoff: isAirportDropoff,
+                      meet_and_greet: selectedServiceIds.includes("meet_greet"),
+                      child_seats: selectedServiceIds.includes("child_seat") ? 1 : 0,
+                      extra_stops: selectedServiceIds.includes("extra_stop") ? 1 : 0,
+                      discount_code: appliedDiscountCode || undefined,
+                    });
+
                     return (
                       <div
                         key={car.name}
@@ -709,12 +815,10 @@ function BookingClientUI({ dbCarTypes }: { dbCarTypes: any }) {
                         <div className="flex items-center justify-between pt-2">
                           <div>
                             <span className="text-[9px] uppercase tracking-widest text-muted-foreground font-black block">
-                              {serviceType === "hourly" ? "Hourly Rate" : "Estimated Upfront"}
+                              {serviceType === "hourly" ? "Total Charter Fare" : "All-Inclusive Upfront"}
                             </span>
                             <span className="font-serif text-xl font-black italic text-gold">
-                              {serviceType === "hourly"
-                                ? `${formatPrice(car.hourlyRate || 150)}/hr`
-                                : formatPrice((car.baseFare || 35) + (route?.distanceInKm ? route.distanceInKm * (car.perMileRate || 4.5) : 80))}
+                              {formatPrice(carQuote.total_cents / 100)}
                             </span>
                           </div>
                           <Button
@@ -923,9 +1027,9 @@ function BookingClientUI({ dbCarTypes }: { dbCarTypes: any }) {
                       </Button>
                     )}
                   </div>
-                  {serverQuote?.discountAmount ? (
+                  {serverQuote?.discountAmount || localQuote.discount_cents > 0 ? (
                     <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1 mt-1">
-                      <Check className="h-3 w-3" /> Code &quot;{serverQuote.discountCode}&quot; applied (-{formatPrice(serverQuote.discountAmount)})
+                      <Check className="h-3 w-3" /> Code &quot;{appliedDiscountCode}&quot; applied (-{formatPrice(serverQuote?.discountAmount || localQuote.discount_cents / 100)})
                     </p>
                   ) : null}
                 </div>
@@ -1073,7 +1177,7 @@ function BookingClientUI({ dbCarTypes }: { dbCarTypes: any }) {
                     ) : (
                       <>
                         <ShieldCheck className="h-4 w-4 text-primary-foreground group-hover:scale-110 transition-transform" />
-                        Confirm &amp; Pay {serverQuote ? formatPrice(serverQuote.finalAmount) : "..."}
+                        Confirm &amp; Pay {formatPrice(effectiveFinalAmount)}
                         <ArrowRight className="h-4 w-4" />
                       </>
                     )}
@@ -1108,7 +1212,7 @@ function BookingClientUI({ dbCarTypes }: { dbCarTypes: any }) {
                     {pickup?.address?.freeformAddress || "Pickup location pending"}
                   </span>
                 </div>
-                {serviceType === "point_to_point" && (
+                {serviceType !== "hourly" && (
                   <div className="flex items-start gap-2">
                     <MapPin className="h-3.5 w-3.5 text-gold/60 shrink-0 mt-0.5" />
                     <span className="truncate text-foreground font-bold">
@@ -1128,64 +1232,22 @@ function BookingClientUI({ dbCarTypes }: { dbCarTypes: any }) {
 
               {/* Server Itemized Breakdown */}
               <div className="space-y-2.5 text-xs">
-                <div className="flex justify-between text-muted-foreground">
-                  <span>Base Rate / Charter</span>
-                  <span className="text-foreground font-bold">
-                    {serverQuote ? formatPrice(serverQuote.baseFare + (serverQuote.serviceType === "hourly" ? (serverQuote.timeCharge || 0) : 0)) : "..."}
-                  </span>
-                </div>
-
-                {serverQuote && serverQuote.serviceType === "point_to_point" && (
-                  <div className="flex justify-between text-muted-foreground">
-                    <span>Distance ({serverQuote.calculatedMiles} mi @ ${serverQuote.perMileRate}/mi)</span>
+                {localQuote.line_items.map((item, idx) => (
+                  <div
+                    key={idx}
+                    className={`flex justify-between ${
+                      item.amount_cents < 0
+                        ? "text-emerald-600 dark:text-emerald-400 font-bold"
+                        : "text-muted-foreground"
+                    }`}
+                  >
+                    <span>{item.label}</span>
                     <span className="text-foreground font-bold">
-                      {formatPrice(serverQuote.mileageCharge)}
+                      {item.amount_cents < 0 ? "-" : ""}
+                      {formatPrice(Math.abs(item.amount_cents) / 100)}
                     </span>
                   </div>
-                )}
-
-                {serverQuote && serverQuote.airportFee > 0 && (
-                  <div className="flex justify-between text-muted-foreground">
-                    <span>Sea-Tac Airport Access Fee</span>
-                    <span className="text-foreground font-bold">
-                      +{formatPrice(serverQuote.airportFee)}
-                    </span>
-                  </div>
-                )}
-
-                {serverQuote && serverQuote.optionalServicesFee > 0 && (
-                  <div className="flex justify-between text-muted-foreground">
-                    <span>Bespoke Amenities ({serverQuote.optionalServicesList.length})</span>
-                    <span className="text-foreground font-bold">
-                      +{formatPrice(serverQuote.optionalServicesFee)}
-                    </span>
-                  </div>
-                )}
-
-                {serverQuote && serverQuote.surgeFee > 0 && (
-                  <div className="flex justify-between text-muted-foreground">
-                    <span>Peak Weekend / Event Surcharge</span>
-                    <span className="text-foreground font-bold">
-                      +{formatPrice(serverQuote.surgeFee)}
-                    </span>
-                  </div>
-                )}
-
-                {serverQuote && serverQuote.discountAmount > 0 && (
-                  <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-bold">
-                    <span>Promo Discount ({serverQuote.discountCode})</span>
-                    <span>-{formatPrice(serverQuote.discountAmount)}</span>
-                  </div>
-                )}
-
-                {serverQuote && serverQuote.taxAmount > 0 && (
-                  <div className="flex justify-between text-muted-foreground text-[11px]">
-                    <span>Local Taxes &amp; WA Transportation Surcharge</span>
-                    <span className="text-foreground font-bold">
-                      +{formatPrice(serverQuote.taxAmount)}
-                    </span>
-                  </div>
-                )}
+                ))}
 
                 <div className="pt-4 border-t border-border flex justify-between items-baseline">
                   <div>
@@ -1197,7 +1259,7 @@ function BookingClientUI({ dbCarTypes }: { dbCarTypes: any }) {
                     </span>
                   </div>
                   <span className="font-serif text-3xl font-black italic text-gold">
-                    {serverQuote ? formatPrice(serverQuote.finalAmount) : "..."}
+                    {formatPrice(effectiveFinalAmount)}
                   </span>
                 </div>
               </div>

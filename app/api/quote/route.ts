@@ -6,7 +6,7 @@ import { DEFAULT_VEHICLES, DEFAULT_SURCHARGES } from "@/convex/rate_cards";
 
 const quoteSchema = z.object({
   vehicle_slug: z.string().default("escalade-esv"),
-  trip_type: z.enum(["point_to_point", "hourly", "airport"]).default("point_to_point"),
+  trip_type: z.enum(["point_to_point", "round_trip", "hourly", "airport", "custom"]).default("point_to_point"),
   distance_miles: z.number().min(0).default(0),
   duration_minutes: z.number().min(0).default(0),
   hourly_hours: z.number().min(0).optional(),
@@ -17,6 +17,13 @@ const quoteSchema = z.object({
   child_seats_count: z.number().min(0).default(0),
   extra_stops_count: z.number().min(0).default(0),
   gratuity_percent: z.number().min(0).max(100).default(20),
+  discount_code: z.string().optional(),
+  discount_amount_cents: z.number().min(0).optional(),
+  optional_services: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+    price_cents: z.number(),
+  })).optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -49,6 +56,9 @@ export async function POST(req: NextRequest) {
       child_seats_count: data.child_seats_count,
       extra_stops_count: data.extra_stops_count,
       gratuity_percent: data.gratuity_percent,
+      discount_code: data.discount_code,
+      discount_amount_cents: data.discount_amount_cents || 0,
+      optional_services: data.optional_services || [],
       active_surcharges: DEFAULT_SURCHARGES,
       rate_card_version: 1,
     });

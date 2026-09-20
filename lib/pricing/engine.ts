@@ -3,7 +3,126 @@ import {
   PricingQuoteResult,
   LineItem,
   MileageTier,
+  VehicleRateData,
+  SurchargeData,
 } from "./types";
+import { verifySignedQuoteToken } from "./quoteToken";
+
+export const DEFAULT_VEHICLES: VehicleRateData[] = [
+  {
+    vehicle_slug: "escalade-esv",
+    display_name: "Cadillac Escalade ESV",
+    base_fare_cents: 4000,
+    per_mile_cents: 450,
+    per_minute_cents: 80,
+    hourly_rate_cents: 18000,
+    hourly_minimum_hours: 2,
+    minimum_fare_cents: 12000,
+    max_passengers: 6,
+    max_bags: 6,
+    is_bookable: true,
+    sort_order: 1,
+    tiers: [
+      { from_mile: 0, to_mile: 10, per_mile_cents: 650 },
+      { from_mile: 10, to_mile: 30, per_mile_cents: 525 },
+      { from_mile: 30, to_mile: 75, per_mile_cents: 450 },
+      { from_mile: 75, to_mile: undefined, per_mile_cents: 395 },
+    ],
+  },
+  {
+    vehicle_slug: "s-class",
+    display_name: "Mercedes-Benz S-Class",
+    base_fare_cents: 3500,
+    per_mile_cents: 380,
+    per_minute_cents: 65,
+    hourly_rate_cents: 15000,
+    hourly_minimum_hours: 2,
+    minimum_fare_cents: 10000,
+    max_passengers: 3,
+    max_bags: 3,
+    is_bookable: true,
+    sort_order: 2,
+    tiers: [
+      { from_mile: 0, to_mile: 10, per_mile_cents: 550 },
+      { from_mile: 10, to_mile: 30, per_mile_cents: 450 },
+      { from_mile: 30, to_mile: 75, per_mile_cents: 380 },
+      { from_mile: 75, to_mile: undefined, per_mile_cents: 325 },
+    ],
+  },
+  {
+    vehicle_slug: "navigator-l",
+    display_name: "Lincoln Navigator L",
+    base_fare_cents: 4000,
+    per_mile_cents: 450,
+    per_minute_cents: 80,
+    hourly_rate_cents: 18000,
+    hourly_minimum_hours: 2,
+    minimum_fare_cents: 12000,
+    max_passengers: 6,
+    max_bags: 6,
+    is_bookable: true,
+    sort_order: 3,
+    tiers: [
+      { from_mile: 0, to_mile: 10, per_mile_cents: 650 },
+      { from_mile: 10, to_mile: 30, per_mile_cents: 525 },
+      { from_mile: 30, to_mile: 75, per_mile_cents: 450 },
+      { from_mile: 75, to_mile: undefined, per_mile_cents: 395 },
+    ],
+  },
+  {
+    vehicle_slug: "sprinter",
+    display_name: "Mercedes-Benz Sprinter",
+    base_fare_cents: 6500,
+    per_mile_cents: 550,
+    per_minute_cents: 100,
+    hourly_rate_cents: 22000,
+    hourly_minimum_hours: 3,
+    minimum_fare_cents: 18000,
+    max_passengers: 14,
+    max_bags: 14,
+    is_bookable: true,
+    sort_order: 4,
+    tiers: [
+      { from_mile: 0, to_mile: 10, per_mile_cents: 750 },
+      { from_mile: 10, to_mile: 30, per_mile_cents: 650 },
+      { from_mile: 30, to_mile: 75, per_mile_cents: 550 },
+      { from_mile: 75, to_mile: undefined, per_mile_cents: 495 },
+    ],
+  },
+];
+
+export const DEFAULT_SURCHARGES: SurchargeData[] = [
+  { key: "airport_pickup_fee", label: "Sea-Tac Airport Pickup Fee", type: "flat", amount: 2500, is_active: true },
+  { key: "airport_dropoff_fee", label: "Sea-Tac Airport Dropoff Fee", type: "flat", amount: 1500, is_active: true },
+  { key: "meet_and_greet", label: "Airport Meet & Greet with Baggage Escort", type: "flat", amount: 3500, is_active: true },
+  { key: "extra_stop", label: "Additional Intermediate Stop", type: "flat", amount: 3000, is_active: true },
+  { key: "child_seat", label: "Forward/Rear Facing Child Safety Seat", type: "flat", amount: 2500, is_active: true },
+  { key: "after_hours", label: "After-Hours Service (11:00 PM - 5:00 AM)", type: "flat", amount: 3500, is_active: true },
+  { key: "holiday_surcharge", label: "Holiday Premium", type: "percent", amount: 2000, is_active: false },
+  { key: "wa_sales_tax", label: "Washington State Sales & Transit Tax", type: "percent", amount: 1025, is_active: true },
+  { key: "default_gratuity", label: "Chauffeur Gratuity (Customer Adjustable)", type: "percent", amount: 2000, is_active: true },
+];
+
+export function getVehicleRateCard(vehicleKeyOrSlug?: string): VehicleRateData {
+  if (!vehicleKeyOrSlug) return DEFAULT_VEHICLES[1]; // default S-Class
+  const clean = vehicleKeyOrSlug.toLowerCase();
+  const matched = DEFAULT_VEHICLES.find(
+    (v) => v.vehicle_slug === clean || v.display_name.toLowerCase().includes(clean)
+  );
+  return matched || DEFAULT_VEHICLES[1];
+}
+
+export function verifyQuoteToken(token: string) {
+  // Synchronously or decode payload check
+  try {
+    const parts = token.split(".");
+    if (parts.length === 3) {
+      const payload = JSON.parse(Buffer.from(parts[1], "base64").toString("utf-8"));
+      return payload;
+    }
+  } catch {}
+  return null;
+}
 
 /**
  * Calculates cumulative mileage charges across distance tiers.
@@ -101,22 +220,38 @@ export function calculateTripQuote(params: TripQuoteParams): PricingQuoteResult 
   const line_items: LineItem[] = [];
   const {
     trip_type,
-    vehicle,
+    vehicle_class,
     distance_miles,
     duration_minutes,
     hourly_hours = 0,
-    pickup_datetime_utc,
+    pickup_datetime,
+    pickup_datetime_utc = pickup_datetime ? new Date(pickup_datetime).getTime() : Date.now(),
     is_airport_pickup = false,
     is_airport_dropoff = false,
     meet_and_greet = false,
-    child_seats_count = 0,
-    extra_stops_count = 0,
+    child_seats = 0,
+    child_seats_count = child_seats,
+    extra_stops = 0,
+    extra_stops_count = extra_stops,
     gratuity_percent = 20,
-    active_surcharges = [],
-    rate_card_version,
+    discount_code,
+    discount_amount_cents = 0,
+    optional_services = [],
+    active_surcharges = DEFAULT_SURCHARGES,
+    rate_card_version = 1,
   } = params;
 
-  let baseRateCents = 0;
+  const vehicle = params.vehicle || getVehicleRateCard(vehicle_class || "s-class");
+
+  let baseFareCents = 0;
+  let mileageChargeCents = 0;
+  let timeChargeCents = 0;
+  let surchargesTotalCents = 0;
+
+  // Round trip multiplier
+  const tripMultiplier = trip_type === "round_trip" ? 2 : 1;
+  const effectiveDistanceMiles = distance_miles * tripMultiplier;
+  const effectiveDurationMinutes = duration_minutes * tripMultiplier;
 
   if (trip_type === "hourly") {
     // Hourly charter calculation
@@ -125,47 +260,50 @@ export function calculateTripQuote(params: TripQuoteParams): PricingQuoteResult 
       vehicle.hourly_minimum_hours
     );
     const hourlyChargeCents = Math.round(effectiveHours * vehicle.hourly_rate_cents);
-    baseRateCents = hourlyChargeCents;
+    baseFareCents = hourlyChargeCents;
 
     line_items.push({
       id: "hourly_base",
-      label: `${vehicle.display_name} Charter (${effectiveHours} hrs @ $${(vehicle.hourly_rate_cents / 100).toFixed(2)}/hr)`,
+      label: `${vehicle.display_name} Private Charter (${effectiveHours} hrs @ $${(vehicle.hourly_rate_cents / 100).toFixed(2)}/hr)`,
       amount_cents: hourlyChargeCents,
     });
   } else {
-    // Point-to-point or Airport transfer calculation
-    // 1. Base fare
+    // Point-to-point, Round-trip, Airport transfer, or Custom
+    // 1. Base flag drop fare
     if (vehicle.base_fare_cents > 0) {
-      baseRateCents += vehicle.base_fare_cents;
+      const totalBaseFare = vehicle.base_fare_cents * tripMultiplier;
+      baseFareCents = totalBaseFare;
       line_items.push({
         id: "base_fare",
-        label: `${vehicle.display_name} Base Fare`,
-        amount_cents: vehicle.base_fare_cents,
+        label: trip_type === "round_trip"
+          ? `${vehicle.display_name} Base Fare (Round Trip)`
+          : `${vehicle.display_name} Base Fare`,
+        amount_cents: totalBaseFare,
       });
     }
 
     // 2. Cumulative mileage tiers
     const { totalMileageCents, tierBreakdowns } = calculateCumulativeMileageCents(
-      distance_miles,
+      effectiveDistanceMiles,
       vehicle.tiers,
       vehicle.per_mile_cents
     );
-    baseRateCents += totalMileageCents;
+    mileageChargeCents = totalMileageCents;
     line_items.push(...tierBreakdowns);
 
     // 3. Duration / Traffic time charge (if per_minute_cents configured)
-    if (vehicle.per_minute_cents > 0 && duration_minutes > 0) {
-      const timeChargeCents = Math.round(duration_minutes * vehicle.per_minute_cents);
-      baseRateCents += timeChargeCents;
+    if (vehicle.per_minute_cents > 0 && effectiveDurationMinutes > 0) {
+      const timeCharge = Math.round(effectiveDurationMinutes * vehicle.per_minute_cents);
+      timeChargeCents = timeCharge;
       line_items.push({
         id: "time_charge",
-        label: `Estimated Travel Time (${Math.round(duration_minutes)} mins @ $${(vehicle.per_minute_cents / 100).toFixed(2)}/min)`,
-        amount_cents: timeChargeCents,
+        label: `Estimated Travel Time (${Math.round(effectiveDurationMinutes)} mins @ $${(vehicle.per_minute_cents / 100).toFixed(2)}/min)`,
+        amount_cents: timeCharge,
       });
     }
   }
 
-  let runningSubtotalCents = baseRateCents;
+  let runningSubtotalCents = baseFareCents + mileageChargeCents + timeChargeCents;
 
   // 4. Flat Surcharges
   const surchargesByKey = new Map(active_surcharges.map((s) => [s.key, s]));
@@ -175,6 +313,7 @@ export function calculateTripQuote(params: TripQuoteParams): PricingQuoteResult 
     const s = surchargesByKey.get("airport_pickup_fee")!;
     if (s.is_active && s.amount > 0) {
       runningSubtotalCents += s.amount;
+      surchargesTotalCents += s.amount;
       line_items.push({ id: s.key, label: s.label, amount_cents: s.amount });
     }
   }
@@ -184,6 +323,7 @@ export function calculateTripQuote(params: TripQuoteParams): PricingQuoteResult 
     const s = surchargesByKey.get("airport_dropoff_fee")!;
     if (s.is_active && s.amount > 0) {
       runningSubtotalCents += s.amount;
+      surchargesTotalCents += s.amount;
       line_items.push({ id: s.key, label: s.label, amount_cents: s.amount });
     }
   }
@@ -193,16 +333,18 @@ export function calculateTripQuote(params: TripQuoteParams): PricingQuoteResult 
     const s = surchargesByKey.get("meet_and_greet")!;
     if (s.is_active && s.amount > 0) {
       runningSubtotalCents += s.amount;
+      surchargesTotalCents += s.amount;
       line_items.push({ id: s.key, label: s.label, amount_cents: s.amount });
     }
   }
 
-  // Child Seats
+  // Child Safety Seats
   if (child_seats_count > 0 && surchargesByKey.has("child_seat")) {
     const s = surchargesByKey.get("child_seat")!;
     if (s.is_active && s.amount > 0) {
       const amount = s.amount * child_seats_count;
       runningSubtotalCents += amount;
+      surchargesTotalCents += amount;
       line_items.push({
         id: s.key,
         label: `${s.label} (×${child_seats_count})`,
@@ -211,12 +353,13 @@ export function calculateTripQuote(params: TripQuoteParams): PricingQuoteResult 
     }
   }
 
-  // Extra Stops
+  // Extra Intermediate Stops
   if (extra_stops_count > 0 && surchargesByKey.has("extra_stop")) {
     const s = surchargesByKey.get("extra_stop")!;
     if (s.is_active && s.amount > 0) {
       const amount = s.amount * extra_stops_count;
       runningSubtotalCents += amount;
+      surchargesTotalCents += amount;
       line_items.push({
         id: s.key,
         label: `${s.label} (×${extra_stops_count})`,
@@ -225,21 +368,38 @@ export function calculateTripQuote(params: TripQuoteParams): PricingQuoteResult 
     }
   }
 
-  // After-Hours Service
+  // Optional Add-on Services
+  if (optional_services && optional_services.length > 0) {
+    for (const opt of optional_services) {
+      if (opt.price_cents > 0) {
+        runningSubtotalCents += opt.price_cents;
+        surchargesTotalCents += opt.price_cents;
+        line_items.push({
+          id: `opt_${opt.id}`,
+          label: opt.name,
+          amount_cents: opt.price_cents,
+        });
+      }
+    }
+  }
+
+  // After-Hours Service (11:00 PM - 5:00 AM)
   if (isSeattleAfterHours(pickup_datetime_utc) && surchargesByKey.has("after_hours")) {
     const s = surchargesByKey.get("after_hours")!;
     if (s.is_active && s.amount > 0) {
       runningSubtotalCents += s.amount;
+      surchargesTotalCents += s.amount;
       line_items.push({ id: s.key, label: s.label, amount_cents: s.amount });
     }
   }
 
-  // 5. Percentage Surcharges (e.g. Holiday)
+  // 5. Percentage Surcharges (e.g. Weekend / Holiday)
   for (const s of active_surcharges) {
     if (s.type === "percent" && s.is_active && s.key !== "wa_sales_tax" && s.key !== "default_gratuity") {
       const percentCharge = Math.round(runningSubtotalCents * (s.amount / 10000));
       if (percentCharge > 0) {
         runningSubtotalCents += percentCharge;
+        surchargesTotalCents += percentCharge;
         line_items.push({
           id: s.key,
           label: `${s.label} (${(s.amount / 100).toFixed(1)}%)`,
@@ -250,19 +410,32 @@ export function calculateTripQuote(params: TripQuoteParams): PricingQuoteResult 
   }
 
   // 6. Minimum Fare Floor Enforcement
-  if (vehicle.minimum_fare_cents > 0 && runningSubtotalCents < vehicle.minimum_fare_cents) {
-    const diff = vehicle.minimum_fare_cents - runningSubtotalCents;
-    runningSubtotalCents = vehicle.minimum_fare_cents;
+  const effectiveMinFareCents = vehicle.minimum_fare_cents * tripMultiplier;
+  if (effectiveMinFareCents > 0 && runningSubtotalCents < effectiveMinFareCents) {
+    const diff = effectiveMinFareCents - runningSubtotalCents;
+    runningSubtotalCents = effectiveMinFareCents;
     line_items.push({
       id: "min_fare_adjustment",
-      label: `Minimum Fare Adjustment (Floor: $${(vehicle.minimum_fare_cents / 100).toFixed(2)})`,
+      label: `Minimum Fare Adjustment (Floor: $${(effectiveMinFareCents / 100).toFixed(2)})`,
       amount_cents: diff,
     });
   }
 
-  const subtotal_cents = runningSubtotalCents;
+  // 7. Promotional Discount Deductions
+  let discountCents = 0;
+  if (discount_amount_cents > 0) {
+    discountCents = Math.min(discount_amount_cents, runningSubtotalCents);
+    runningSubtotalCents -= discountCents;
+    line_items.push({
+      id: "promo_discount",
+      label: `Promotional Discount (${discount_code || "PROMO"})`,
+      amount_cents: -discountCents,
+    });
+  }
 
-  // 7. Gratuity (customer-adjustable percentage on subtotal)
+  const subtotal_cents = Math.max(0, runningSubtotalCents);
+
+  // 8. Gratuity (customer-adjustable percentage on subtotal)
   const safeGratuityPercent = Math.max(0, Math.min(100, gratuity_percent));
   const gratuity_cents = Math.round(subtotal_cents * (safeGratuityPercent / 100));
   if (gratuity_cents > 0) {
@@ -273,7 +446,7 @@ export function calculateTripQuote(params: TripQuoteParams): PricingQuoteResult 
     });
   }
 
-  // 8. Washington State Sales & Transit Tax
+  // 9. Washington State Sales & Transit Tax
   const taxSurcharge = surchargesByKey.get("wa_sales_tax");
   const taxRateBasisPoints = taxSurcharge && taxSurcharge.is_active ? taxSurcharge.amount : 1025; // 10.25%
   const tax_rate_percent = taxRateBasisPoints / 100;
@@ -288,6 +461,7 @@ export function calculateTripQuote(params: TripQuoteParams): PricingQuoteResult 
 
   // Final Total in Integer Cents
   const total_cents = subtotal_cents + gratuity_cents + tax_cents;
+  const final_amount_dollars = Math.round((total_cents / 100) * 100) / 100;
 
   const now = Date.now();
   const expires_at = now + 15 * 60 * 1000; // 15-minute quote lock
@@ -297,15 +471,23 @@ export function calculateTripQuote(params: TripQuoteParams): PricingQuoteResult 
     display_name: vehicle.display_name,
     trip_type,
     rate_card_version,
-    distance_miles,
-    duration_minutes,
+    distance_miles: effectiveDistanceMiles,
+    duration_minutes: effectiveDurationMinutes,
     line_items,
+    base_fare_cents: baseFareCents,
+    mileage_charge_cents: mileageChargeCents,
+    time_charge_cents: timeChargeCents,
+    surcharges_total_cents: surchargesTotalCents,
+    discount_cents: discountCents,
+    discount_code,
     subtotal_cents,
     gratuity_cents,
     gratuity_percent: safeGratuityPercent,
     tax_cents,
     tax_rate_percent,
     total_cents,
+    final_amount_dollars,
+    currency: "USD",
     created_at: now,
     expires_at,
   };

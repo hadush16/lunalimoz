@@ -77,10 +77,13 @@ export async function createCheckoutSession(data: {
   carTypeName: string;
   distance: number;
   duration: number;
-  serviceType: "point_to_point" | "hourly";
+  serviceType: "point_to_point" | "round_trip" | "hourly" | "airport" | "custom";
   hourlyDuration?: number;
   carTypeMultiplier: number;
   price: number;
+  signedQuoteToken?: string;
+  distanceMiles?: number;
+  durationMinutes?: number;
   customerEmail: string;
   customerName: string;
   customerPhone: string;

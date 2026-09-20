@@ -21,7 +21,7 @@ async function stripeRequest<T>(
       return {
         payment_status: "paid",
         payment_intent: "pi_mock_12345",
-        amount_total: 18500,
+        amount_total: 0,
         currency: "usd",
         payment_method_types: ["card"],
         metadata: {},
